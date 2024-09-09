@@ -1,3 +1,4 @@
+# flake8: noqa
 from django.conf import settings
 
 from pathlib import Path
