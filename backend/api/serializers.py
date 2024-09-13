@@ -2,6 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.fields import RegexField
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import get_user_model
 
 from core.constans import ZERO, ONE
 from api.mixins import ValidateBase64Mixin, ExtraKwargsMixin
@@ -9,7 +10,6 @@ from users.models import Subscription
 from recipes.models import (Tag, Recipe, Ingredient, ShortLink,
                             IngredientRecipeAmountModel,
                             FavoriteRecipe, ShoppingCart)
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
