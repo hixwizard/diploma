@@ -348,6 +348,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для Списка покупок.
+    """
     class Meta:
         model = ShoppingCart
         fields = ('id', 'user', 'recipe')
@@ -410,7 +413,9 @@ class DeleteFromModelSerializer(BaseFieldsSerializer):
 
 
 class ShortLinkSerializer(serializers.ModelSerializer):
-    """Сериализатор для короткой ссылки."""
+    """
+    Сериализатор для короткой ссылки.
+    """
     short_link = serializers.SerializerMethodField()
 
     class Meta:
