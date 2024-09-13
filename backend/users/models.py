@@ -1,8 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from core.constans import (
-    MAX_EMAIL, MAX_NAME, ROLE_CHOICES, MAX_ROLE_LENGTH, ROLE_CHOICES_LIST)
+from core.constans import MAX_EMAIL, MAX_NAME
 
 
 class User(AbstractUser):
@@ -34,29 +33,12 @@ class User(AbstractUser):
     )
     avatar = models.ImageField(
         default=None,
+        blank=True,
         null=True,
         upload_to='media/users/',
         verbose_name='фото профиля',
         help_text='фото профиля'
     )
-    role = models.CharField(
-        max_length=MAX_ROLE_LENGTH,
-        choices=ROLE_CHOICES_LIST,
-        default=ROLE_CHOICES['user'],
-        verbose_name='роль'
-    )
-
-    @property
-    def is_admin(self):
-        return self.role == ROLE_CHOICES['admin']
-
-    @property
-    def is_authenticated(self):
-        return self.role == ROLE_CHOICES['user']
-
-    @property
-    def is_anonymous(self):
-        return False
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'password', 'first_name', 'last_name')
@@ -85,6 +67,10 @@ class Subscription(models.Model):
             models.UniqueConstraint(
                 fields=('user', 'following'),
                 name='unique_followers'
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('following')),
+                name='self_subscription'
             ),
         )
 

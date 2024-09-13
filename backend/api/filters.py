@@ -1,6 +1,6 @@
-from django_filters import (
-    FilterSet, ModelMultipleChoiceFilter,
-    BooleanFilter, NumberFilter, CharFilter)
+from django_filters import (FilterSet,
+                            ModelMultipleChoiceFilter,
+                            BooleanFilter, CharFilter)
 
 from recipes.models import Recipe, Tag, Ingredient
 
@@ -16,35 +16,28 @@ class RecipeFilter(FilterSet):
     )
     is_favorited = BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = BooleanFilter(method='filter_is_in_shopping_cart')
-    recipes_limit = NumberFilter(field_name='recipes')
-
-    def filter_is_favorited(self, queryset, name, value):
-        """
-        Избранное.
-        """
-        request = self.request
-        if not request.user.is_authenticated:
-            return queryset.none()
-        if value:
-            return queryset.filter(favorites__user=request.user)
-        return queryset
-
-    def filter_is_in_shopping_cart(self, queryset, name, value):
-        """
-        Список покупок.
-        """
-        request = self.request
-        if not request.user.is_authenticated:
-            return queryset.none()
-        if value:
-            return queryset.filter(shoppingcart__user=request.user)
-        return queryset
 
     class Meta:
         model = Recipe
         fields = (
             'is_favorited', 'is_in_shopping_cart', 'author', 'tags'
         )
+
+    def filter_user_list(self, queryset, name, value):
+        """
+        Фильтрация по спискам пользователя (избранное или список покупок).
+        """
+        if not self.request.user.is_authenticated:
+            return queryset.none()
+        user = self.request.user
+        field_mapping = {
+            'is_favorited': 'favorites',
+            'is_in_shopping_cart': 'shoppingcart'
+        }
+        if name in field_mapping and value:
+            related_field = field_mapping[name]
+            return queryset.filter(**{related_field + '__user': user})
+        return queryset
 
 
 class IngredientFilter(FilterSet):
