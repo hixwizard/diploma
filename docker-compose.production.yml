@@ -1,8 +1,7 @@
 volumes:
-  bstatic:
-  bmedia:
-  pg_data:
   static:
+  media:
+  pg_data:
 
 services:
 
@@ -18,8 +17,8 @@ services:
     image: hihix/foodgram_backend
     env_file: .env
     volumes:
-      - bstatic:/app/collected_static/
-      - bmedia:/app/media/
+      - static:/app/collected_static/
+      - media:/app/media/
     depends_on:
       - db
 
@@ -35,7 +34,7 @@ services:
     image: hihix/foodgram_nginx
     volumes:
       - static:/usr/share/nginx/html/
-      - bstatic:/usr/share/nginx/html/backend/static/
-      - bmedia:/usr/share/nginx/html/backend/media/
+      - static:/usr/share/nginx/html/backend/static/
+      - media:/usr/share/nginx/html/backend/media/
     ports:
       - 8000:80
