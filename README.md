@@ -1,4 +1,4 @@
-Находясь в папке infra, выполните команду docker-compose up. При выполнении этой команды контейнер frontend, описанный в docker-compose.yml, подготовит файлы, необходимые для работы фронтенд-приложения, а затем прекратит свою работу.
+![Build Status](https://github.com/hix9/foodgram/actions/workflows/main.yml/badge.svg)
 
-По адресу http://localhost изучите фронтенд веб-приложения, а по адресу http://localhost/api/docs/ — спецификацию API.
 
+#### Автор: [Баринов Станислав](https://github.com/hix9)
