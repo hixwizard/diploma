@@ -17,7 +17,7 @@ services:
     image: hihix/foodgram_backend
     env_file: .env
     volumes:
-      - static:/app/collected_static/
+      - static:/app/static/
       - media:/app/media/
     depends_on:
       - db
