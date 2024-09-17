@@ -17,7 +17,7 @@ services:
     image: hihix/foodgram_backend
     env_file: .env
     volumes:
-      - static:/backend_static
+      - static:/app/static
       - media:/app/media
     depends_on:
       - db
@@ -27,13 +27,13 @@ services:
     image: hihix/foodgram_frontend
     command: cp -r /app/build/. /static/
     volumes:
-      - static:/frontend_static
+      - static:/app/static
 
   nginx:
     container_name: foodgram-proxy
     image: hihix/foodgram_nginx
     volumes:
-      - static:/staticfiles
-      - media:/media
+      - static:/app/static
+      - media:/app/media
     ports:
       - 8000:80
