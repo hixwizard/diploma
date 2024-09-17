@@ -2,6 +2,7 @@ import os
 from uuid import uuid4
 from io import BytesIO
 
+from django.db.models import Prefetch
 from django.http import FileResponse
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
@@ -24,14 +25,10 @@ from recipes.models import (Tag, Recipe, Ingredient, ShortLink,
                             IngredientRecipeAmountModel)
 from api.serializers import (UserAvatarUpdateSerializer, TagSerializer,
                              RecipeCreateSerializer, IngredientSerializer,
-                             RecipeGETSerializer, RecipeSerializer,
-                             ShortLinkSerializer,
-                             ShoppingCartSerializer,
-                             DeleteFromModelSerializer,
-                             CreateToModelSerializer,
-                             ListGETSubscriptionsSerialaizer,
-                             ListSubscriptionsSerialaizer,
-                             SubscriptionCreateSerializer)
+                             RecipeGETSerializer,
+                             ShortLinkSerializer, ShoppingCartSerializer,
+                             SubscriptionSerializer, FavoriteRecipeSerializer,
+                             ListSubscriptionsSerialaizer,)
 from core.constans import SHORT_LINK_LENGTH
 
 User = get_user_model()
@@ -73,28 +70,28 @@ class UserViewSet(DjoserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            if hasattr(request.user, 'avatar'):
-                avatar = request.user.avatar
-                avatar.storage == default_storage
-                path = avatar.path
-                os.path.exists(path)
-                default_storage.delete(path)
-                setattr(request.user, 'avatar', None)
-                request.user.save()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+        if hasattr(request.user, 'avatar'):
+            avatar = request.user.avatar
+            avatar.storage == default_storage
+            path = avatar.path
+            os.path.exists(path)
+            default_storage.delete(path)
+            setattr(request.user, 'avatar', None)
+            request.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'],
-            url_path='subscriptions',
+    @action(detail=False, methods=['get'], url_path='subscriptions',
             permission_classes=(CurrentUserOrAdminOrReadOnly,))
     def subscriptions(self, request):
         """
         Получение списка подписчиков.
         """
-        queryset = User.objects.prefetch_related('recipes').filter(
-            followers__user=request.user)
+        queryset = Subscription.objects.filter(
+            following__in=User.objects.filter(
+                email=request.user.email)
+        ).prefetch_related(Prefetch('recipes'))
         page = self.paginate_queryset(queryset)
-        serializer = ListGETSubscriptionsSerialaizer(
+        serializer = ListSubscriptionsSerialaizer(
             page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
@@ -103,7 +100,6 @@ class UserViewSet(DjoserViewSet):
         methods=['post', 'delete'],
         url_path='subscribe',
         permission_classes=(IsAuthenticated,),
-        serializer_class=ListSubscriptionsSerialaizer,
         pagination_class=CustomPagination
     )
     def subscribe(self, request, pk=None):
@@ -112,17 +108,22 @@ class UserViewSet(DjoserViewSet):
         """
         following = self.get_object()
         if request.method == 'POST':
-            serializer = SubscriptionCreateSerializer(
-                data={'following': following.id},
+            serializer = SubscriptionSerializer(
+                data={
+                    'user': request.user.id,
+                    'following': following.id
+                },
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save(user=request.user)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        subscription = Subscription.objects.filter(
-            user=request.user, following=following).first()
-        if subscription:
-            subscription.delete()
+        if Subscription.objects.filter(
+                user=request.user,
+                following=following).exists():
+            Subscription.objects.filter(
+                user=request.user, following=following
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -164,10 +165,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Получение рецептов в зависимости от избранного или списка покупок.
         """
         queryset = Recipe.objects.all()
-        tag_filter = self.request.query_params.getlist('tags')
-        if tag_filter:
-            queryset = queryset.filter(
-                tags__slug__in=[tag.lower() for tag in tag_filter])
         if self.request.user.is_authenticated:
             favorite_subquery = FavoriteRecipe.objects.filter(
                 user=self.request.user,
@@ -181,7 +178,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 is_favorited=Exists(favorite_subquery),
                 is_in_shopping_cart=Exists(shopping_cart_subquery)
             )
-        if self.request.user.is_authenticated:
             if self.request.query_params.get('is_in_shopping_cart'):
                 queryset = queryset.filter(is_in_shopping_cart=True)
             if self.request.query_params.get('is_favorited'):
@@ -223,22 +219,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['get'],
             url_path='download_shopping_cart',
-            permission_classes=[AuthorOrReadOnly]
+            permission_classes=[IsAuthenticated]
             )
     def shopping_list(self, request):
         """
         Скачать файл со списком покупок.
         """
-        user = self.request.user
-        if request.data:
-            serializer = ShoppingCartSerializer(data=request.data)
-            if serializer.is_valid():
-                shopping_cart_recipes = serializer.validated_data['recipe']
-            else:
-                shopping_cart_recipes = []
-        else:
-            shopping_cart_recipes = ShoppingCart.objects.filter(
-                user=user).values_list('recipe', flat=True)
+        shopping_cart_recipes = Recipe.objects.filter(
+            shoppingcart__user=self.request.user)
+        if not shopping_cart_recipes.exists():
+            raise ValueError('Список покупок пуст.')
         ingredients = IngredientRecipeAmountModel.objects.filter(
             recipe__in=shopping_cart_recipes
         ).values(
@@ -255,35 +245,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
         file_buffer = BytesIO(file_content.encode('utf-8'))
         return FileResponse(file_buffer,
                             as_attachment=True,
-                            filename='shopping_cart.txt')
+                            filename='shopping_cart.txt',
+                            status=status.HTTP_200_OK)
 
-    def _add_or_delete_to_model(self, request, model_name, pk=None):
+    def _add_or_delete_to_model(self, request, model, serializer, pk=None):
         """
         Добавить или удалить элемент в модель.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            serializer = CreateToModelSerializer(
-                data={'user': request.user, 'recipe': recipe},
-                context={'request': request, 'model': model_name}
-            )
-            validated_data = serializer.validate(serializer.initial_data)
-            new_instance = serializer.create(validated_data)
-            serializer = RecipeSerializer(recipe)
-            data = serializer.data
-            data['model_id'] = new_instance.id
-            return Response(data, status=status.HTTP_201_CREATED)
-        else:
-            serializer = DeleteFromModelSerializer(
-                data={'recipe': recipe},
-                context={'request': request, 'model': model_name}
-            )
-            instance_data = serializer.validate({'recipe': recipe})
-            ModelClass = globals()[model_name]
-            model_instance = ModelClass.objects.get(
+            new_instance = model.objects.create(
                 user=request.user,
-                recipe=instance_data['instance'].recipe)
-            model_instance.delete()
+                recipe=recipe)
+            validated_data = serializer.validate(request.data)
+            new_instance.__dict__.update(validated_data)
+            new_instance.save()
+            return Response(
+                serializer.validated_data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            instance = model.objects.get(user=request.user, recipe=recipe)
+            serializer.delete(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True,
@@ -294,8 +275,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Добавить или удалить из Списка покупок.
         """
-        model_name = ShoppingCart.__name__
-        return self._add_or_delete_to_model(request, model_name, pk)
+        model = ShoppingCart
+        serializer = ShoppingCartSerializer
+        return self._add_or_delete_to_model(
+            request, model, serializer, pk)
 
     @action(detail=True,
             methods=['post', 'delete'],
@@ -305,5 +288,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Добавить или удалить в Избранное.
         """
-        model_name = FavoriteRecipe.__name__
-        return self._add_or_delete_to_model(request, model_name, pk)
+        model = FavoriteRecipe
+        serializer = FavoriteRecipeSerializer
+        return self._add_or_delete_to_model(
+            request, model, serializer, pk)

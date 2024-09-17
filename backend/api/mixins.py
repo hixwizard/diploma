@@ -13,7 +13,7 @@ class ExtraKwargsMixin:
         extra_kwargs = {
             'username': {
                 'max_length': MAX_NAME,
-                'regex': r'`^[w.@+-]+Z`',
+                'regex': r'^[\w.@+-]+$',
             },
             'email': {'max_length': MAX_EMAIL, 'validators': []},
             'first_name': {'max_length': MAX_NAME},
