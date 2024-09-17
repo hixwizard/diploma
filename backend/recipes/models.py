@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -136,6 +136,7 @@ class Recipe(models.Model):
 
 
 @receiver(pre_delete, sender=Recipe)
+@transaction.atomic
 def delete_recipe_image(sender, instance, **kwargs):
     """
     Удаление изображения рецепта из БД.
@@ -239,7 +240,12 @@ class BaseUserRecipe(models.Model):
     )
 
     class Meta:
-        abstract = True
+        abstract = False
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique_user_recipe')
+        ]
 
     def __str__(self):
         return f'{self.user.username} добавил {self.recipe.name}'
