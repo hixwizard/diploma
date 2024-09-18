@@ -30,9 +30,13 @@ services:
       - static:/frontend_static
 
   nginx:
+    depends_on:
+      - frontend
+      - backend
     image: hihix/foodgram_gateway
+    env_file: .env
+    ports:
+      - 8000:80
     volumes:
       - static:/staticfiles
       - media:/media
-    ports:
-      - 8000:80
