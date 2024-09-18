@@ -111,16 +111,10 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             ),
         )
 
-    def validate(self, attrs):
-        if attrs['user'] == attrs['following']:
-            raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя')
-        return attrs
-
     def validate_following(self, value):
         if value.followers.filter(
-                user=self.context['request'].user,
-                following=value).exists():
+                user=self.context['request'].user
+        ).exists():
             raise serializers.ValidationError(
                 'Вы уже подписаны на этого пользователя.')
         return value
