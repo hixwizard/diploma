@@ -37,6 +37,5 @@ services:
       - bstatic:/static/
       - bmedia:/media/
       - static:/frontend_static/
-      - ../etc/nginx/templates/default.conf.template
     ports:
       - 8000:80
