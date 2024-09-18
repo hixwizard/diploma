@@ -43,5 +43,7 @@ services:
     ports:
       - 8000:80
     volumes:
-      - static:/staticfiles
-      - media:/app/media
+      - ./nginx:/etc/nginx/conf.d
+      - static:/static/frontend_static
+      - static:/backend_static
+      - media:/media/
