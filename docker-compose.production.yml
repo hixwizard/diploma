@@ -1,3 +1,5 @@
+version: '3'
+
 volumes:
   static:
   media:
@@ -34,6 +36,6 @@ services:
     image: hihix/foodgram_nginx
     volumes:
       - static:/staticfiles
-      - media:/app/media
+      - media:/media
     ports:
       - 8000:80

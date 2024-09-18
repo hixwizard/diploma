@@ -30,7 +30,7 @@ services:
     build: ./frontend/
     command: cp -r /app/build/. /static/
     volumes:
-      - static:/static
+      - static:/frontend_static
 
   nginx:
     container_name: foodgram-proxy
@@ -43,6 +43,5 @@ services:
     ports:
       - 8000:80
     volumes:
-      - static:/static
+      - static:/staticfiles
       - media:/app/media
-      - ./docs/:/usr/share/nginx/html/api/docs/
