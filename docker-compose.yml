@@ -8,7 +8,6 @@ volumes:
 services:
 
   db:
-    container_name: foodgram-db
     image: postgres:13.10
     env_file: .env
     volumes:
