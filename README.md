@@ -16,6 +16,6 @@
 ```mermaid
 graph LR;
   outer-nginx <--> inner-nginx <--> backend <--> postgresql;
-  outer-nginx      inner-nginx --> frontend;
+  outer-nginx <--> inner-nginx --> frontend;
 ```
 #### Автор: [Баринов Станислав](https://github.com/hix9)
