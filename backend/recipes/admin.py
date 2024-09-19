@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from recipes.models import (
     Tag,
@@ -39,6 +40,12 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(ordering='favorites__count')
     def favorites_count(self, obj):
         return obj.favorites.count()
+
+    @admin.display(ordering='image')
+    def image_tag(self, obj):
+        return format_html(
+            '<img src="{}" style="width:100px"/>'.format(obj.image.url)
+        )
 
     class Meta:
         model = Recipe

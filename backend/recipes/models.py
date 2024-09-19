@@ -1,8 +1,5 @@
-from django.db import models, transaction
+from django.db import models
 from django.contrib.auth import get_user_model
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
-from django.core.files.storage import default_storage
 
 from core.constans import MAX_TAG, MAX_INGREDIENT, MAX_UNIT, RECIPE_MAX_FIELDS
 
@@ -116,36 +113,8 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
-    @property
-    def image_tag(self):
-        if self.image:
-            return f'<img src="{self.image.url}" width="50" height="50" />'
-        return 'Нет изображения'
-
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.update_tags()
-
-    def update_tags(self):
-        TagRecipe.objects.filter(recipe=self).delete()
-        for tag_id in self.tags.all().values_list('pk', flat=True):
-            TagRecipe.objects.get_or_create(tag_id=tag_id, recipe=self)
-
-
-@receiver(pre_delete, sender=Recipe)
-@transaction.atomic
-def delete_recipe_image(sender, instance, **kwargs):
-    """
-    Удаление изображения рецепта из БД.
-    """
-    if hasattr(instance, 'image') and instance.image:
-        file_path = instance.image.path
-        default_storage.delete(file_path)
-        instance.image.delete(save=False)
-    return True
 
 
 class TagRecipe(models.Model):
