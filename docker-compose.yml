@@ -41,6 +41,5 @@ services:
     ports:
       - 8000:80
     volumes:
-      - static:/app/static #статика бек
       - static:/staticfiles
       - media:/app/media
