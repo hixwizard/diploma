@@ -64,6 +64,8 @@ graph LR;
 
 5. Создать папку `foodgram` на вашем сервере и скопировать в нее:
 
+    - `.env.example` уже находится в одной директории вместе с `.yml` файлами для деплоя
+    - `.env.example` содержит информацию, аналогичною той, что понадобится для управления
     - `.env`, добавьте в него переменные из списка в файле `.env.example` в корне проекта
     - Создать папку `infra` в папке `foodgram` и скопировать в нее `docker-compose.production.yml`
 
@@ -80,7 +82,6 @@ graph LR;
     sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
     sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/static/. /backend_static/
     ```
-
 
 8. Изменить конфиг Nginx в зависимости от имеющегося. Например:
 
