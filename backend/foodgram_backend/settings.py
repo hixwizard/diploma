@@ -16,6 +16,10 @@ DEBUG = os.getenv('DEBUG_MODE', default='False',) == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=[]).split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://hixfoodgram.hopto.org',
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
