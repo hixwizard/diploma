@@ -1,4 +1,5 @@
 ![Build Status](https://github.com/hix9/foodgram/actions/workflows/main.yml/badge.svg)
+
 [Развёрнутый проект](https://hixfoodgram.hopto.org/recipes)
 ## Стек использованных технологий
 
