@@ -1,7 +1,7 @@
 ![Build Status](https://github.com/hix9/foodgram/actions/workflows/main.yml/badge.svg)
 
 [Развёрнутый проект](https://hixfoodgram.hopto.org/recipes)
-## Стек использованных технологий
+### Стек использованных технологий
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
@@ -22,7 +22,7 @@ graph LR;
   outer-nginx <--> inner-nginx <--> backend <--> postgresql;
   outer-nginx <--> inner-nginx --> frontend;
 ```
-## Как развернуть проект на удаленном сервере
+### Как развернуть проект на удаленном сервере
 
 1. Форкнуть репозиторий в свой GitHub и склонировать его:
 
