@@ -220,7 +220,7 @@ class RecipeGETSerializer(serializers.ModelSerializer):
             'author', 'is_favorited', 'is_in_shopping_cart',
             'image', 'ingredients'
         )
-        read_only_fields = ('author',)
+        read_only_fields = ('author', 'tags', 'ingredients')
 
     def get_tags(self, recipe):
         queryset = TagRecipe.objects.filter(recipe=recipe)
