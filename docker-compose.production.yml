@@ -25,7 +25,7 @@ services:
   frontend:
     container_name: foodgram-front
     image: hihix/foodgram_frontend
-    command: cp -r /app/build/. /static/
+    command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
 
@@ -38,5 +38,6 @@ services:
     ports:
       - 8000:80
     volumes:
+      - static:/frontend_static
       - static:/staticfiles
-      - media:/media
+      - media:/app/media

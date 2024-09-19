@@ -28,7 +28,7 @@ services:
     container_name: foodgram-frontend
     env_file: .env
     build: ./frontend/
-    command: cp -r /app/build/. /static/
+    command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
 
@@ -43,4 +43,4 @@ services:
       - 8000:80
     volumes:
       - static:/staticfiles
-      - media:/media
+      - media:/app/media
