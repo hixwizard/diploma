@@ -15,7 +15,7 @@
 
 ```mermaid
 graph LR;
-  outer-nginx -->|Load Balancing| inner-nginx <--> backend <--> postgresql;
-  outer-nginx -->|Proxy| frontend;
+  outer-nginx --> inner-nginx <--> backend <--> postgresql;
+  outer-nginx --> inner-nginx --> frontend;
 ```
 #### Автор: [Баринов Станислав](https://github.com/hix9)
