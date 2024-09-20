@@ -26,7 +26,7 @@ from api.serializers import (UserAvatarUpdateSerializer, TagSerializer,
                              RecipeGETSerializer,
                              ShortLinkSerializer, ShoppingCartSerializer,
                              SubscriptionSerializer, FavoriteRecipeSerializer,
-                             ListSubscriptionsSerialaizer,)
+                             ListSubscriptionsSerializer,)
 from core.constans import SHORT_LINK_LENGTH
 
 User = get_user_model()
@@ -85,16 +85,16 @@ class UserViewSet(DjoserViewSet):
         Получение списка подписчиков.
         """
         queryset = User.objects.filter(
-            followers__user=request.user
+            following__user=request.user
         ).prefetch_related(Prefetch('recipes'))
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = ListSubscriptionsSerialaizer(
+            serializer = ListSubscriptionsSerializer(
                 page, many=True, context={'request': request}
             )
             return self.get_paginated_response(serializer.data)
 
-        serializer = ListSubscriptionsSerialaizer(
+        serializer = ListSubscriptionsSerializer(
             queryset, many=True, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
