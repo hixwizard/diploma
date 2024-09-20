@@ -142,6 +142,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                     'Вы не подписаны на этого пользователя.')
         return attrs
 
+    def create(self, validated_data):
+        return Subscription.objects.create(**validated_data)
+
     def to_representation(self, instance):
         return ListSubscriptionsSerialaizer(
             instance, context=self.context).data
@@ -222,10 +225,10 @@ class RecipeGETSerializer(serializers.ModelSerializer):
     Этот сериализатор используется для получения полной информации о рецепте,
     включая теги, ингредиенты, автора и статусы избранного и корзины покупок.
     """
-    tags = TagSerializer(many=True, read_only=True)
-    ingredients = IngredientSerializer(
-        many=True, source='ingredientrecipeamountmodel_set',
-        read_only=True)
+    tags = TagSerializer(many=True, required=True)
+    ingredients = RecipeIngredientSerializer(
+        many=True, source='ingredient_amounts',
+        required=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.BooleanField(default=False)
     is_in_shopping_cart = serializers.BooleanField(default=False)
@@ -285,6 +288,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
             )
         return value
 
+    @transaction.atomic
     def create(self, validated_data):
         """
         Создает новый экземпляр модели Recipe.
@@ -297,6 +301,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
         self.create_ingredients(recipe, ingredients_data)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """
         Обновляет экземпляр модели Recipe.
@@ -310,6 +315,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
         instance.save()
         return instance
 
+    @transaction.atomic
     def create_ingredients(self, recipe, ingredients_data):
         """
         Наполняет рецепт ингредиентами.
