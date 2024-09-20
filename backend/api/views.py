@@ -106,7 +106,7 @@ class UserViewSet(DjoserViewSet):
         """
         following = self.get_object()
         user = request.user
-        data = {'following': following, 'user': user}
+        data = {'following': following.id, 'user': user.id}
         if request.method == 'POST':
             serializer = SubscriptionSerializer(
                 data=data,
