@@ -113,12 +113,13 @@ class UserViewSet(DjoserViewSet):
         if request.method == 'POST':
             if not Subscription.objects.filter(
                     user=user, following=following).exists():
-                return Response(
-                    {'detail': 'Вы уже подписаны на этого пользователя.'},
-                    status=status.HTTP_400_BAD_REQUEST)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            return Response(
+                {'detail': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
