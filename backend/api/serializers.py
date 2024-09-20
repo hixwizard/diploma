@@ -147,7 +147,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return ListSubscriptionsSerialaizer(
-            instance, context=self.context).data
+            instance.following, context=self.context).data
 
 
 class ListSubscriptionsSerialaizer(UserSerializer):
@@ -157,17 +157,35 @@ class ListSubscriptionsSerialaizer(UserSerializer):
     recipes = serializers.SerializerMethodField('get_recipes', read_only=True)
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    avatar = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = UserSerializer.Meta.fields + (
-            'recipes',
-            'recipes_count',
+        fields = (
+            'id', 'username', 'first_name', 'last_name',
+            'email', 'recipes', 'recipes_count',
+            'is_subscribed', 'avatar',
         )
         read_only_fields = (
-            'email', 'username', 'first_name',
-            'last_name'
+            'username', 'first_name', 'last_name', 'email', 'avatar',
         )
+
+    def get_avatar(self, obj):
+        """
+        Возвращает URL аватара пользователя или None, если аватара нет.
+        """
+        if isinstance(obj, User):
+            if obj.avatar:
+                return obj.avatar.url
+        return None
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Subscription.objects.filter(
+                user=user, following=obj).exists()
+        return False
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
