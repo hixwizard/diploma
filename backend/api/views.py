@@ -111,9 +111,8 @@ class UserViewSet(DjoserViewSet):
         serializer = SubscriptionSerializer(
             data=data, context={'request': request})
         if request.method == 'POST':
-            if Subscription.objects.filter(
-                    user=user, following=following
-            ).exists():
+            if not Subscription.objects.filter(
+                    user=user, following=following).exists():
                 return Response(
                     {'detail': 'Вы уже подписаны на этого пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST)
