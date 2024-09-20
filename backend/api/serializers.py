@@ -5,9 +5,6 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
-from django.core.files.storage import default_storage
 
 from core.constans import MIN_COOKING_TIME, MIN_AMOUNT, MIN_LIMIT
 from api.mixins import ValidateBase64Mixin, ExtraKwargsMixin
@@ -78,19 +75,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
-
-
-@receiver(pre_delete, sender=Recipe)
-@transaction.atomic
-def delete_recipe_image(sender, instance, **kwargs):
-    """
-    Удаление изображения рецепта из БД.
-    """
-    if hasattr(instance, 'image') and instance.image:
-        file_path = instance.image.path
-        default_storage.delete(file_path)
-        instance.image.delete(save=False)
-    return True
 
 
 class IngredientSerializer(serializers.ModelSerializer):
