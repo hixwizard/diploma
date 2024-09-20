@@ -118,12 +118,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             ).exists():
                 raise serializers.ValidationError(
                     'Вы уже подписаны на этого пользователя.')
-        if self.context['request'].method == 'DELETE':
-            if not Subscription.objects.filter(
-                user=user, following=following
-            ).exists():
-                raise serializers.ValidationError(
-                    'Вы не подписаны на этого пользователя.')
         return attrs
 
     def create(self, validated_data):

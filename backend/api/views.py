@@ -107,22 +107,16 @@ class UserViewSet(DjoserViewSet):
         """
         following = get_object_or_404(User, pk=pk)
         user = request.user
-        data = {'following': following.id, 'user': user.id}
+        data = {'following': following, 'user': user}
         serializer = SubscriptionSerializer(
             data=data, context={'request': request})
         if request.method == 'POST':
-            if not Subscription.objects.filter(
-                    user=user, following=following).exists():
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(
-                {'detail': 'Вы уже подписаны на этого пользователя.'},
-                status=status.HTTP_400_BAD_REQUEST)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
-            if instance:
+            if instance.exists():
                 instance.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
