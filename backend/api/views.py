@@ -104,7 +104,7 @@ class UserViewSet(DjoserViewSet):
         """
         Позволяет подписаться или отписаться от пользователя.
         """
-        following = get_object_or_404(User, pk=pk)
+        following = self.get_object()
         user = request.user
         data = {'following': following, 'user': user}
         if request.method == 'POST':
