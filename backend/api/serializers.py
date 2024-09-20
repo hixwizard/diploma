@@ -115,10 +115,10 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             )
         if not Subscription.objects.filter(
                 user=user, following=following).exists():
-            return attrs
-        raise serializers.ValidationError(
-            'Вы уже подписаны на этого пользователя.'
-        )
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.'
+            )
+        return attrs
 
     def create(self, validated_data):
         return Subscription.objects.create(**validated_data)
@@ -253,6 +253,9 @@ class IngredientCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
     def validate_amount(self, value):
+        """
+        Проверяет, что количество ингредиента больше нуля.
+        """
         if value < MIN_AMOUNT:
             raise serializers.ValidationError(
                 f'Количество ингредиента должно быть больше {MIN_AMOUNT}.')
