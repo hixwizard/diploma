@@ -161,10 +161,7 @@ class ListSubscriptionsSerialaizer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if user.is_authenticated:
-            return Subscription.objects.filter(
-                user=user, following=obj).exists()
-        return False
+        return Subscription.objects.filter(user=user, following=obj).exists()
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -387,9 +384,15 @@ class FavoriteRecipeSerializer(BaseUserRecipeSerializer):
     """
     Сериализатор для работы со списком избранного.
     """
+    is_favorited = serializers.SerializerMethodField()
+
     class Meta:
         model = FavoriteRecipe
         fields = ['id', 'recipe', 'user']
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        return user.favorites.filter(recipe=obj).exists()
 
 
 class ShoppingCartSerializer(BaseUserRecipeSerializer):

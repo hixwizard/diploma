@@ -85,13 +85,19 @@ class UserViewSet(DjoserViewSet):
         Получение списка подписчиков.
         """
         queryset = User.objects.filter(
-            followers__following=request.user
+            followers__user=request.user
         ).prefetch_related(Prefetch('recipes'))
         page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ListSubscriptionsSerialaizer(
+                page, many=True, context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
         serializer = ListSubscriptionsSerialaizer(
-            page, many=True, context={'request': request}
+            queryset, many=True, context={'request': request}
         )
-        return self.get_paginated_response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=True,
@@ -145,6 +151,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
     pagination_class = None
+    filterset_fields = ['name']
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -161,7 +168,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Получение рецептов в зависимости от избранного или списка покупок.
         """
-        queryset = Recipe.objects.all()
+        queryset = Recipe.objects.all().order_by('-id')
         if self.request.user.is_authenticated:
             favorite_subquery = FavoriteRecipe.objects.filter(
                 user=self.request.user,
