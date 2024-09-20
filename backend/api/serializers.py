@@ -5,7 +5,6 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Prefetch
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.core.files.storage import default_storage
