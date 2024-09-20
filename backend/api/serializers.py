@@ -113,12 +113,12 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя.'
             )
-        if Subscription.objects.filter(
+        if not Subscription.objects.filter(
                 user=user, following=following).exists():
-            raise serializers.ValidationError(
-                'Вы уже подписаны на этого пользователя.'
-            )
-        return attrs
+            return attrs
+        raise serializers.ValidationError(
+            'Вы уже подписаны на этого пользователя.'
+        )
 
     def create(self, validated_data):
         return Subscription.objects.create(**validated_data)
