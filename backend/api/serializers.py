@@ -125,15 +125,15 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return Subscription.objects.create(**validated_data)
 
     def to_representation(self, instance):
-        return ListSubscriptionsSerialaizer(
+        return ListSubscriptionsSerializer(
             instance.following, context=self.context).data
 
 
-class ListSubscriptionsSerialaizer(UserSerializer):
+class ListSubscriptionsSerializer(UserSerializer):
     """
     Сериализатор для получения списка подписчиков с рецептами.
     """
-    recipes = serializers.SerializerMethodField('get_recipes', read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
@@ -154,10 +154,7 @@ class ListSubscriptionsSerialaizer(UserSerializer):
         """
         Возвращает URL аватара пользователя или None, если аватара нет.
         """
-        if isinstance(obj, User):
-            if obj.avatar:
-                return obj.avatar.url
-        return None
+        return obj.avatar.url if obj.avatar else None
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
@@ -168,17 +165,9 @@ class ListSubscriptionsSerialaizer(UserSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        if hasattr(obj, 'recipes'):
-            recipes = obj.recipes.all()
-        else:
-            return []
-        limit = request.GET.get('limit', None)
-        if not recipes.exists():
-            return []
-        if limit:
-            if not limit.isdigit() or int(limit) <= MIN_LIMIT:
-                raise serializers.ValidationError(
-                    'Лимит должен быть положительным целым числом.')
+        recipes = obj.recipes.all()
+        limit = request.GET.get('recipes_limit', None)
+        if limit and limit.isdigit() and int(limit) > MIN_LIMIT:
             recipes = recipes[:int(limit)]
         serializer = RecipeSerializer(recipes, many=True)
         return serializer.data
