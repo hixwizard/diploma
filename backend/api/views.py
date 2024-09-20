@@ -16,7 +16,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.filters import RecipeFilter, IngredientFilter
-from users.models import Subscription
 from api.pagination import CustomPagination
 from api.permissions import AuthorOrReadOnly
 from recipes.models import (Tag, Recipe, Ingredient, ShortLink,
@@ -108,15 +107,17 @@ class UserViewSet(DjoserViewSet):
         following = get_object_or_404(User, pk=pk)
         user = request.user
         data = {'following': following, 'user': user}
-        serializer = SubscriptionSerializer(
-            data=data, context={'request': request})
         if request.method == 'POST':
+            serializer = SubscriptionSerializer(
+                data=data,
+                context={'request': request}
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
-            if instance.exists():
+            if instance:
                 instance.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(

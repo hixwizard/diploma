@@ -111,13 +111,13 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         following = attrs.get('following')
         if following == user:
             raise serializers.ValidationError(
-                'Вы не можете подписаться на себя.')
-        if self.context['request'].method == 'POST':
-            if Subscription.objects.filter(
-                user=user, following=following
-            ).exists():
-                raise serializers.ValidationError(
-                    'Вы уже подписаны на этого пользователя.')
+                'Вы не можете подписаться на себя.'
+            )
+        if Subscription.objects.filter(
+                user=user, following=following).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.'
+            )
         return attrs
 
     def create(self, validated_data):
