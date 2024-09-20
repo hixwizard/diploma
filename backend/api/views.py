@@ -78,8 +78,7 @@ class UserViewSet(DjoserViewSet):
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], url_path='subscriptions',
-            permission_classes=(CurrentUserOrAdminOrReadOnly,))
+    @action(detail=False, methods=['get'], url_path='subscriptions')
     def subscriptions(self, request):
         """
         Получение списка подписчиков.
