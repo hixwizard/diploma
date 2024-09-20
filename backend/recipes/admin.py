@@ -1,6 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
-
+from django.utils.safestring import mark_safe
 from recipes.models import (
     Tag,
     Recipe,
@@ -33,19 +32,17 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     ordering = ('-id',)
 
-    @admin.display(ordering='author__username')
     def author_username(self, obj):
         return obj.author.username
 
-    @admin.display(ordering='favorites__count')
     def favorites_count(self, obj):
         return obj.favorites.count()
 
-    @admin.display(ordering='image')
     def image_tag(self, obj):
-        return format_html(
-            '<img src="{}" style="width:100px"/>'.format(obj.image.url)
-        )
+        if obj.image:
+            return mark_safe('<img src="{}" width="150"'
+                             'height="100" />'.format(obj.image.url))
+        return None
 
     class Meta:
         model = Recipe

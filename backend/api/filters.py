@@ -13,6 +13,7 @@ class RecipeFilter(FilterSet):
         queryset=Tag.objects.all(),
         field_name='tags__slug',
         to_field_name='slug',
+        method='filter_tags',
     )
     is_favorited = BooleanFilter(method='filter_user_list')
     is_in_shopping_cart = BooleanFilter(method='filter_user_list')
@@ -22,6 +23,14 @@ class RecipeFilter(FilterSet):
         fields = (
             'is_favorited', 'is_in_shopping_cart', 'author', 'tags'
         )
+
+    def filter_tags(self, queryset, name, value):
+        """
+        Фильтрация по тегам.
+        """
+        if value:
+            return queryset.filter(tags__slug__in=value).distinct()
+        return queryset
 
     def filter_user_list(self, queryset, name, value):
         """

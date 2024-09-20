@@ -209,12 +209,8 @@ class BaseUserRecipe(models.Model):
     )
 
     class Meta:
-        abstract = False
-        constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='unique_user_recipe')
-        ]
+        abstract = True
+        unique_together = ('user', 'recipe')
 
     def __str__(self):
         return f'{self.user.username} добавил {self.recipe.name}'
