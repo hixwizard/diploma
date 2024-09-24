@@ -126,11 +126,14 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Subscription
         fields = ('following', 'is_subscribed')
+        extra_kwargs = {
+            'is_subscribed': {'read_only': True},
+        }
 
     def validate(self, attrs):
         user = self.context['request'].user
