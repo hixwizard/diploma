@@ -105,23 +105,31 @@ class UserViewSet(DjoserViewSet):
         """
         following = self.get_object()
         user = request.user
-        data = {'following': following.id, 'user': user.id}
+        data = {'following': following.id}
+
         if request.method == 'POST':
             serializer = SubscriptionSerializer(
-                data=data,
-                context={'request': request}
+                data=data, context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            # Use ListSubscriptionsSerializer to display the following user after subscription
+            output_serializer = ListSubscriptionsSerializer(
+                following, context={'request': request}
+            )
+            return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
                 instance.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(
-                {'detail': 'Подписка не найдена.'},
-                status=status.HTTP_400_BAD_REQUEST)
+
+                # Use ListSubscriptionsSerializer to display the following user after unsubscription
+                output_serializer = ListSubscriptionsSerializer(
+                    following, context={'request': request}
+                )
+                return Response(output_serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
