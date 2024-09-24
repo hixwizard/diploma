@@ -138,7 +138,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     Сериализатор создания подписок.
     """
 
-    following = ListSubscriptionsSerializer(read_only=True)
+    following = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all())
 
     class Meta:
         model = Subscription
