@@ -87,10 +87,15 @@ class UserViewSet(DjoserViewSet):
         user = self.request.user
         subscriptions = Subscription.objects.filter(user=user)
         paginated_subscriptions = self.paginate_queryset(subscriptions)
-        serializer = SubscriptionSerializer(
-            paginated_subscriptions, many=True, context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
+        subscriptions_with_recipes = []
+        for subscription in paginated_subscriptions:
+            following_user = subscription.following
+            serializer = ListSubscriptionsSerializer(
+                following_user, context={'request': request}
+            )
+            subscriptions_with_recipes.append(serializer.data)
+
+        return self.get_paginated_response(subscriptions_with_recipes)
 
     @action(
         detail=True,

@@ -354,7 +354,6 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         recipe = attrs.get('recipe')
-
         if self.context['request'].method == 'POST':
             if self.Meta.model.objects.filter(
                 user=user, recipe=recipe).exists():
