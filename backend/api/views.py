@@ -79,19 +79,6 @@ class UserViewSet(DjoserViewSet):
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], url_path='subscriptions')
-    def subscriptions(self, request):
-        """
-        Получение списка подписчиков.
-        """
-        user = request.user
-        subscriptions = User.objects.filter(followers__user=user)
-        paginated_subscriptions = self.paginate_queryset(subscriptions)
-        serializer = ListSubscriptionsSerializer(
-            paginated_subscriptions, many=True, context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
-
     @action(
         detail=True,
         methods=['post', 'delete'],
@@ -119,6 +106,19 @@ class UserViewSet(DjoserViewSet):
                 instance.delete()
                 return Response(serializer.data,
                                 status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='subscriptions')
+    def subscriptions(self, request):
+        """
+        Получение списка подписчиков.
+        """
+        user = request.user
+        subscriptions = User.objects.filter(followers__user=user)
+        paginated_subscriptions = self.paginate_queryset(subscriptions)
+        serializer = ListSubscriptionsSerializer(
+            paginated_subscriptions, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
