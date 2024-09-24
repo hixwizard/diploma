@@ -19,10 +19,11 @@ services:
       - db
     image: hihix/foodgram_backend
     env_file: .env
+
     volumes:
       - static:/backend_static
       - media:/app/media
-      - ./data:/app/data
+      - data:/app/data
 
   frontend:
     container_name: foodgram-front

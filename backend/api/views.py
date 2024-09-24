@@ -166,6 +166,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         queryset = Recipe.objects.all().order_by('-id')
         if self.request.user.is_authenticated:
+            
             favorite_subquery = FavoriteRecipe.objects.filter(
                 user=self.request.user,
                 recipe=OuterRef('pk')
