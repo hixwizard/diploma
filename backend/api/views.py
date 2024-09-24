@@ -96,7 +96,6 @@ class UserViewSet(DjoserViewSet):
         if request.method == 'POST':
             serializer = SubscriptionSerializer(
                 data=data,
-                context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
