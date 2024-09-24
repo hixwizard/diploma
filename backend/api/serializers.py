@@ -104,6 +104,7 @@ class ListSubscriptionsSerializer(UserSerializer):
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -113,6 +114,22 @@ class ListSubscriptionsSerializer(UserSerializer):
             'is_subscribed', 'avatar',
         )
 
+    def validate(self, attrs):
+        user = self.context['request'].user
+        following = attrs.get('following')
+        if following == user:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на себя.')
+        if Subscription.objects.filter(
+                user=user, following=following).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.')
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return Subscription.objects.create(user=user, **validated_data)
+
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = obj.recipes.all()
@@ -121,12 +138,19 @@ class ListSubscriptionsSerializer(UserSerializer):
             recipes = recipes[:int(limit)]
         return RecipeSerializer(recipes, many=True).data
 
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscription.objects.filter(
+            user=user, following=obj.following
+        ).exists()
+
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
     is_subscribed = serializers.SerializerMethodField(read_only=True)
+    following = UserSerializer(read_only=True)
 
     class Meta:
         model = Subscription
