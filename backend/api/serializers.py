@@ -110,9 +110,6 @@ class ListSubscriptionsSerializer(UserSerializer):
         )
 
     def get_avatar(self, obj):
-        """
-        Возвращает URL аватара пользователя или None, если аватара нет.
-        """
         return obj.avatar.url if obj.avatar else None
 
     def get_is_subscribed(self, obj):
