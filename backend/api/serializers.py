@@ -92,31 +92,25 @@ class ListSubscriptionsSerializer(UserSerializer):
     """
     Сериализатор для получения списка подписчиков с рецептами.
     """
+    recipes_count = serializers.IntegerField(
+        source='recipes.count', read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.IntegerField(source='recipes.count', read_only=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'username', 'first_name', 'last_name',
-            'email', 'recipes', 'recipes_count',
+            'email', 'recipes', 'recipes_count', 
             'is_subscribed', 'avatar',
         )
-        read_only_fields = (
-            'username', 'first_name', 'last_name', 'email', 'avatar',
-        )
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        recipes = obj.recipes.all() if hasattr(obj, 'recipes') else Recipe.objects.none()
+        recipes = obj.recipes.all()
         limit = request.GET.get('recipes_limit', None)
         if limit and limit.isdigit() and int(limit) > MIN_LIMIT:
             recipes = recipes[:int(limit)]
-        serializer = RecipeSerializer(recipes, many=True)
-        return serializer.data
+        return RecipeSerializer(recipes, many=True).data
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -125,27 +119,24 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Subscription  # Assuming you have a Subscription model
+        model = Subscription
         fields = ('following',)
 
     def validate(self, attrs):
         user = self.context['request'].user
         following = attrs.get('following')
-
         if following == user:
-            raise serializers.ValidationError('Вы не можете подписаться на себя.')
-
-        if Subscription.objects.filter(user=user, following=following).exists():
-            raise serializers.ValidationError('Вы уже подписаны на этого пользователя.')
-
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на себя.')
+        if Subscription.objects.filter(
+                user=user, following=following).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.')
         return attrs
 
     def create(self, validated_data):
         user = self.context['request'].user
         return Subscription.objects.create(user=user, **validated_data)
-
-    def to_representation(self, instance):
-        return ListSubscriptionsSerializer(instance.following, context=self.context).data
 
 
 class UserAvatarUpdateSerializer(
