@@ -266,12 +266,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response({
+                "id": serializer.data['id'],
+                "recipe": serializer.data['recipe'],
+                "is_favorited": isinstance(
+                    serializer, FavoriteRecipeSerializer),
+                "is_in_shopping_cart": isinstance(
+                    serializer, ShoppingCartSerializer)
+            }, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             instance = model.objects.filter(user=user, recipe=recipe).first()
             if instance:
                 instance.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response({
+                    "is_favorited": isinstance(
+                        serializer, FavoriteRecipeSerializer),
+                    "is_in_shopping_cart": isinstance(
+                        serializer, ShoppingCartSerializer)
+                }, status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {"detail": "Рецепт уже удалён."},
                 status=status.HTTP_404_NOT_FOUND

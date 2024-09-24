@@ -359,7 +359,6 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
             if self.Meta.model.objects.filter(
                 user=user, recipe=recipe).exists():
                 raise ValidationError('Рецепт уже добавлен в избранное.')
-
         if self.context['request'].method == 'DELETE':
             if not self.Meta.model.objects.filter(
                 user=user, recipe=recipe).exists():
@@ -368,6 +367,15 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return self.Meta.model.objects.create(**validated_data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        user = self.context['request'].user
+        representation['is_favorited'] = isinstance(
+            instance, FavoriteRecipe)
+        representation['is_in_shopping_cart'] = isinstance(
+            instance, ShoppingCart)
+        return representation
 
 
 class FavoriteRecipeSerializer(BaseUserRecipeSerializer):
