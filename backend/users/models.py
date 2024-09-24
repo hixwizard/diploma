@@ -63,7 +63,7 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'подписчик'
         verbose_name_plural = 'Подписчики'
-        unique_together = ('user', 'recipe')
+        unique_together = ('user', 'following')
 
     def __str__(self):
         return f'{self.user} подписался на {self.following}'
