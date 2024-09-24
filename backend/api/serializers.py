@@ -33,8 +33,8 @@ class UserSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
         """
         Проверяет, подписан ли текущий пользователь на данного автора.
         """
-        return obj.followers.filter(
-            user=self.context['request'].user, author=obj).exists()
+        user = self.context['request'].user
+        return Subscription.objects.filter(user=user, following=obj).exists()
 
     def get_avatar(self, obj):
         """
@@ -50,15 +50,6 @@ class UserCreateSerializer(serializers.ModelSerializer, ExtraKwargsMixin):
     """
     Сериализатор регистрации пользователей.
     """
-
-    def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        return super().create(validated_data)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation.pop('password', None)
-        return representation
 
     class Meta:
         model = User
