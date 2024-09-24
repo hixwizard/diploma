@@ -109,21 +109,20 @@ class UserViewSet(DjoserViewSet):
         data = {'following': following.id, 'user': user.id}
         serializer = SubscriptionSerializer(
             data=data, context={'request': request})
+        is_subscribed = Subscription.objects.filter(
+            user=user, following=following).exists()
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             subscription = serializer.save()
-            
             return Response({
                 'id': subscription.id,
                 'following': subscription.following.id,
                 'is_subscribed': True
             }, status=status.HTTP_201_CREATED)
-
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
                 instance.delete()
-                
                 return Response({
                     'is_subscribed': False
                 }, status=status.HTTP_204_NO_CONTENT)
