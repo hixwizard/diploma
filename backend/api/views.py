@@ -107,25 +107,26 @@ class UserViewSet(DjoserViewSet):
         following = self.get_object()
         user = request.user
         data = {'following': following.id, 'user': user.id}
+        serializer = SubscriptionSerializer(
+            data=data, context={'request': request})
         if request.method == 'POST':
-            serializer = SubscriptionSerializer(
-                data=data,
-                context={'request': request}
-            )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            subscription = serializer.save()
+            
+            return Response({
+                'id': subscription.id,
+                'following': subscription.following.id,
+                'is_subscribed': True
+            }, status=status.HTTP_201_CREATED)
 
-            response_serializer = ListSubscriptionsSerializer(
-                following, context={'request': request})
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
+        elif request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
                 instance.delete()
-                response_serializer = ListSubscriptionsSerializer(
-                    following, context={'request': request})
-                return Response(response_serializer.data, status=status.HTTP_204_NO_CONTENT)
+                
+                return Response({
+                    'is_subscribed': False
+                }, status=status.HTTP_204_NO_CONTENT)
 
             return Response(
                 {'detail': 'Подписка не найдена.'},
