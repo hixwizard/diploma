@@ -86,11 +86,11 @@ class UserViewSet(DjoserViewSet):
         permission_classes=(IsAuthenticated,),
         pagination_class=CustomPagination
     )
-    def subscribe(self, request, id):
+    def subscribe(self, request, pk=None):
         """
         Позволяет подписаться или отписаться от пользователя.
         """
-        following = get_object_or_404(User, pk=id)
+        following = get_object_or_404(User, pk=pk)
         user = request.user
         data = {'following': following.id, 'user': user.id}
 
