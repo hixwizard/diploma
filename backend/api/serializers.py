@@ -51,6 +51,15 @@ class UserCreateSerializer(serializers.ModelSerializer, ExtraKwargsMixin):
     Сериализатор регистрации пользователей.
     """
 
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation.pop('password', None)
+        return representation
+
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
@@ -100,7 +109,7 @@ class ListSubscriptionsSerializer(UserSerializer):
         model = User
         fields = (
             'id', 'username', 'first_name', 'last_name',
-            'email', 'recipes', 'recipes_count', 
+            'email', 'recipes', 'recipes_count',
             'is_subscribed', 'avatar',
         )
 
