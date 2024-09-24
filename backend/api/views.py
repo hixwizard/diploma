@@ -93,14 +93,16 @@ class UserViewSet(DjoserViewSet):
         following = get_object_or_404(User, pk=id)
         user = request.user
         data = {'following': following.id, 'user': user.id}
+
         if request.method == 'POST':
-            serializer = ListSubscriptionsSerializer(
+            serializer = SubscriptionSerializer(
                 data=data,
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            subscription = serializer.save()  # Save subscription
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
@@ -108,7 +110,8 @@ class UserViewSet(DjoserViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {'detail': 'Подписка не найдена.'},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=False, methods=['get'], url_path='subscriptions')
     def subscriptions(self, request):
