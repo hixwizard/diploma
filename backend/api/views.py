@@ -92,46 +92,23 @@ class UserViewSet(DjoserViewSet):
         """
         following = self.get_object()
         user = request.user
-        data = {'following': following.id}
-
-        serializer = ListSubscriptionsSerializer(data=data, context={'request': request})
-        
+        data = {'following': following.id, 'user': user.id}
         if request.method == 'POST':
+            serializer = SubscriptionSerializer(
+                data=data,
+                context={'request': request}
+            )
             serializer.is_valid(raise_exception=True)
-            
-            # Создаем подписку
-            subscription = serializer.save()
-            
-            # Получаем данные о пользователе, на которого подписались
-            following_serializer = UserSerializer(following)
-            
-            # Формируем ответ с данными о подписчике и статусом подписки
-            response_data = {
-                'id': subscription.id,
-                'following': following_serializer.data,
-                'is_subscribed': True
-            }
-            
-            return Response(response_data, status=status.HTTP_201_CREATED)
-
-        elif request.method == 'DELETE':
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
                 instance.delete()
-                
-                # Получаем данные о пользователе, на которого отписались
-                following_serializer = UserSerializer(following)
-                
-                # Формируем ответ с данными о пользователе и статусом подписки
-                response_data = {
-                    'id': instance.id,
-                    'following': following_serializer.data,
-                    'is_subscribed': False
-                }
-                
-                return Response(response_data, status=status.HTTP_204_NO_CONTENT)
-
-            return Response({'detail': 'Подписка не найдена.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'detail': 'Подписка не найдена.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'], url_path='subscriptions')
     def subscriptions(self, request):
