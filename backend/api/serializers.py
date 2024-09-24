@@ -133,10 +133,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Subscription
-        fields = ('user', 'following')
+        fields = ('user', 'following', 'is_subscribed')
 
     def validate(self, data):
         user = data['user']
@@ -152,6 +153,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                 {'subscription error': 'Подписка уже есть.'}
             )
         return data
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscription.objects.filter(
+            user=user, following=obj.following).exists()
 
     def to_representation(self, instance):
         return ListSubscriptionsSerializer(
