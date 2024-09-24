@@ -258,18 +258,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         data = {'user': user.id, 'recipe': recipe.id}
         serializer = serializer_class(data=data, context={'request': request})
         if request.method == 'POST':
+            if model.objects.filter(user=user, recipe=recipe).exists():
+                return Response(
+                    {"detail": "Рецепт уже добавлен."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            serializer.is_valid(raise_exception=True)
             instance = model.objects.filter(user=user, recipe=recipe).first()
             if instance:
                 instance.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {"detail": "Рецепт уже удалён."},
-                status=status.HTTP_404_NOT_FOUND)
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     @action(detail=True,
             methods=['post', 'delete'],
