@@ -83,20 +83,13 @@ class UserViewSet(DjoserViewSet):
         """
         Получение списка подписчиков.
         """
-        queryset = User.objects.filter(
-            followers__user=request.user
-        ).prefetch_related(Prefetch('recipes'))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = ListSubscriptionsSerializer(
-                page, many=True, context={'request': request}
-            )
-            return self.get_paginated_response(serializer.data)
-
-        serializer = ListSubscriptionsSerializer(
-            queryset, many=True, context={'request': request}
+        user = self.request.user
+        subscriptions = User.objects.filter(followers__user=user)
+        list = self.paginate_queryset(subscriptions)
+        serializer = SubscriptionSerializer(
+            list, many=True, context={'request': request}
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
