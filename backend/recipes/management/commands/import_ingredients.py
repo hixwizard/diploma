@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 from recipes.models import Ingredient
 
-from core.constans import MIN_UNIT
+from core.constans import MIN_COUNT
 DATA_DIR = settings.BASE_DIR / 'data'
 
 
@@ -16,7 +16,7 @@ class Command(BaseCommand):
         with open(
             DATA_DIR / 'ingredients.csv', encoding='utf-8'
         ) as ingredients:
-            if Ingredient.objects.count() < MIN_UNIT:
+            if Ingredient.objects.count() < MIN_COUNT:
                 ingredients_to_load = []
                 for row in DictReader(
                     ingredients, fieldnames=['name', 'measurement_unit']
