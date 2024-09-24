@@ -18,6 +18,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.filters import RecipeFilter, IngredientFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorOrReadOnly
+from users.models import Subscription
 from recipes.models import (Tag, Recipe, Ingredient, ShortLink,
                             ShoppingCart, FavoriteRecipe,
                             IngredientRecipeAmountModel)
@@ -84,10 +85,10 @@ class UserViewSet(DjoserViewSet):
         Получение списка подписчиков.
         """
         user = self.request.user
-        subscriptions = User.objects.filter(followers__user=user)
-        list = self.paginate_queryset(subscriptions)
+        subscriptions = Subscription.objects.filter(user=user)
+        paginated_subscriptions = self.paginate_queryset(subscriptions)
         serializer = SubscriptionSerializer(
-            list, many=True, context={'request': request}
+            paginated_subscriptions, many=True, context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
 
