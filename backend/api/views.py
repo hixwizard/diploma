@@ -108,31 +108,22 @@ class UserViewSet(DjoserViewSet):
         user = request.user
         data = {'following': following.id, 'user': user.id}
         serializer = SubscriptionSerializer(
-            data=data, context={'request': request}
-        )
-        
+            data=data, context={'request': request})
+
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
-            subscription = serializer.save()
-            # Включаем поле is_subscribed в ответ
-            return Response({
-                'id': subscription.id,
-                'following': subscription.following.id,
-                'is_subscribed': True
-            }, status=status.HTTP_201_CREATED)
+            response_data = serializer.create(serializer.validated_data)
+            return Response(response_data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
                 instance.delete()
-                return Response({
-                    'is_subscribed': False
-                }, status=status.HTTP_204_NO_CONTENT)
+                return Response({'is_subscribed': False},
+                                status=status.HTTP_204_NO_CONTENT)
 
-            return Response(
-                {'detail': 'Подписка не найдена.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'detail': 'Подписка не найдена.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

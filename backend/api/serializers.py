@@ -95,8 +95,6 @@ class ListSubscriptionsSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True)
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-    avatar = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -108,13 +106,6 @@ class ListSubscriptionsSerializer(UserSerializer):
         read_only_fields = (
             'username', 'first_name', 'last_name', 'email', 'avatar',
         )
-
-    def get_avatar(self, obj):
-        return obj.avatar.url if obj.avatar else None
-
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return Subscription.objects.filter(user=user, following=obj).exists()
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -130,12 +121,10 @@ class ListSubscriptionsSerializer(UserSerializer):
         return serializer.data
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionSerializer(UserSerializer):
     """
     Сериализатор создания подписок.
     """
-
-    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Subscription
@@ -157,7 +146,12 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return Subscription.objects.create(**validated_data)
+        subscription = Subscription.objects.create(**validated_data)
+        return {
+            'id': subscription.id,
+            'following': subscription.following.id,
+            'is_subscribed': True
+        }
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
