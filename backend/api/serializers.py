@@ -126,6 +126,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Subscription
@@ -146,6 +147,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         return Subscription.objects.create(user=user, **validated_data)
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscription.objects.filter(
+            user=user, following=obj.following).exists()
 
 
 class UserAvatarUpdateSerializer(
