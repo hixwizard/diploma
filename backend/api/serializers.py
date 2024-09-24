@@ -157,7 +157,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         return Subscription.objects.filter(
-            user=user, following=obj.following).exists()
+            user=user, following=obj).exists()
 
     def to_representation(self, instance):
         return ListSubscriptionsSerializer(
