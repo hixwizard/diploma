@@ -84,7 +84,7 @@ class UserViewSet(DjoserViewSet):
         Получение списка подписчиков.
         """
         queryset = User.objects.filter(
-            following__user=request.user
+            followers__user=request.user
         ).prefetch_related(Prefetch('recipes'))
         page = self.paginate_queryset(queryset)
         if page is not None:
