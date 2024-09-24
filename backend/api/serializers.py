@@ -126,7 +126,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return ListSubscriptionsSerializer(
-            instance.following, context=self.context).data
+            instance, context=self.context).data
 
 
 class ListSubscriptionsSerializer(UserSerializer):
@@ -165,7 +165,8 @@ class ListSubscriptionsSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        recipes = obj.recipes.all()
+        recipes = obj.recipes.all() if hasattr(
+            obj, 'recipes') else Recipe.objects.none()
         limit = request.GET.get('recipes_limit', None)
         if limit and limit.isdigit() and int(limit) > MIN_LIMIT:
             recipes = recipes[:int(limit)]
