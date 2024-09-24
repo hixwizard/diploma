@@ -205,6 +205,7 @@ class RecipeGETSerializer(serializers.ModelSerializer):
     is_favorited = serializers.BooleanField(default=False)
     is_in_shopping_cart = serializers.BooleanField(default=False)
     image = Base64ImageField(required=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -214,6 +215,11 @@ class RecipeGETSerializer(serializers.ModelSerializer):
             'image', 'ingredients'
         )
         read_only_fields = ('author', 'tags', 'ingredients')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscription.objects.filter(
+            user=user, following=obj).exists()
 
 
 class IngredientCreateSerializer(serializers.ModelSerializer):
