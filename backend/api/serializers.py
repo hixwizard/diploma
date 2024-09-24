@@ -131,6 +131,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('following', 'is_subscribed')
+        extra_kwargs = {
+            'is_subscribed': {'read_only': True}
+        }
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -151,7 +154,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         return Subscription.objects.filter(
-            user=user, following=obj.following).exists()
+            user=user, following=obj.following
+        ).exists()
 
 
 class UserAvatarUpdateSerializer(
