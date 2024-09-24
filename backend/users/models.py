@@ -63,12 +63,7 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'подписчик'
         verbose_name_plural = 'Подписчики'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('user', 'following'),
-                name='unique_followers'
-            )
-        )
+        unique_together = ('user', 'recipe')
 
     def __str__(self):
         return f'{self.user} подписался на {self.following}'
