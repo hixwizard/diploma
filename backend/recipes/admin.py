@@ -8,7 +8,6 @@ from recipes.models import (
     Ingredient,
     ShoppingCart,
     IngredientRecipeAmountModel,
-    TagRecipe,
 )
 
 
@@ -53,14 +52,6 @@ class ShortLinkAdmin(admin.ModelAdmin):
     search_fields = ('recipe__name', 'link',)
 
 
-class IngredientRecipeAmountModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredient', 'amount')
-
-
-class TagRecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tag', 'recipe')
-
-
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
 
@@ -76,7 +67,5 @@ admin.site.register(FavoriteRecipe, FavoriteRecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(
     IngredientRecipeAmountModel,
-    IngredientRecipeAmountModelAdmin
 )
-admin.site.register(TagRecipe, TagRecipeAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)

@@ -23,6 +23,7 @@ services:
       - static:/backend_static
       - media:/app/media
       - ./data:/app/data
+
   frontend:
     container_name: foodgram-front
     image: hihix/foodgram_frontend
@@ -30,7 +31,6 @@ services:
     volumes:
       - static:/frontend_static
       - media:/app/media
-      - ./data:/app/data
 
   nginx:
     depends_on:
