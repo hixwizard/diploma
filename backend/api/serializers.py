@@ -102,7 +102,7 @@ class ListSubscriptionsSerializer(UserSerializer):
     Сериализатор для получения списка подписчиков с рецептами.
     """
     recipes_count = serializers.IntegerField(
-        source='recipes.count', read_only=True)
+        source='recipe_set.count', read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
@@ -116,7 +116,7 @@ class ListSubscriptionsSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        recipes = obj.recipes.all()
+        recipes = obj.recipe_set.all()
         limit = request.GET.get('recipes_limit', None)
         if limit and limit.isdigit() and int(limit) > MIN_LIMIT:
             recipes = recipes[:int(limit)]
@@ -125,7 +125,7 @@ class ListSubscriptionsSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         return Subscription.objects.filter(
-            user=user, following=obj.following
+            user=user, following=obj
         ).exists()
 
 
@@ -143,15 +143,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         user = data['user']
         following = data['following']
         if user.id == following.id:
-            raise serializers.ValidationError(
-                {'subscription error': 'Нельзя подписаться на себя.'}
-            )
+            raise serializers.ValidationError('Нельзя подписаться на себя.')
         if Subscription.objects.filter(
             user=user, following=following
         ).exists():
-            raise serializers.ValidationError(
-                {'subscription error': 'Подписка уже есть.'}
-            )
+            raise serializers.ValidationError('Подписка уже есть.')
         return data
 
     def get_is_subscribed(self, obj):
