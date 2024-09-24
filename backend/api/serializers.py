@@ -342,11 +342,11 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
         recipe = attrs.get('recipe')
         if self.context['request'].method == 'POST':
             if self.Meta.model.objects.filter(
-                user=user, recipe=recipe).exists():
+                    user=user, recipe=recipe).exists():
                 raise ValidationError('Рецепт уже добавлен в избранное.')
         if self.context['request'].method == 'DELETE':
             if not self.Meta.model.objects.filter(
-                user=user, recipe=recipe).exists():
+                    user=user, recipe=recipe).exists():
                 raise ValidationError('Рецепт уже удалён из избранного.')
         return attrs
 
