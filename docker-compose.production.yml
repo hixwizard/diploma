@@ -4,6 +4,7 @@ volumes:
   pg_data:
   static:
   media:
+  data:
 
 services:
 
@@ -21,7 +22,7 @@ services:
     volumes:
       - static:/backend_static
       - media:/app/media
-
+      - ./data:/app/data
   frontend:
     container_name: foodgram-front
     image: hihix/foodgram_frontend
