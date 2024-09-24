@@ -134,7 +134,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Subscription
