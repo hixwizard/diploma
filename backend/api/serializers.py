@@ -164,7 +164,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return Subscription.objects.filter(user=user, following=obj).exists()
+        return Subscription.objects.filter(
+            user=user, following=obj.following).exists()
 
 
 class UserAvatarUpdateSerializer(
