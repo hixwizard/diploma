@@ -85,7 +85,8 @@ class UserViewSet(DjoserViewSet):
         Получение списка подписчиков.
         """
         user = self.request.user
-        subscriptions = Subscription.objects.filter(user=user)
+        subscriptions = Subscription.objects.filter(
+            user=user).select_related('following')
         paginated_subscriptions = self.paginate_queryset(subscriptions)
         subscriptions_with_recipes = []
         for subscription in paginated_subscriptions:
