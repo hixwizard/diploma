@@ -108,17 +108,19 @@ class UserViewSet(DjoserViewSet):
         user = request.user
         data = {'following': following.id, 'user': user.id}
         serializer = SubscriptionSerializer(
-            data=data, context={'request': request})
-        is_subscribed = Subscription.objects.filter(
-            user=user, following=following).exists()
+            data=data, context={'request': request}
+        )
+        
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             subscription = serializer.save()
+            # Включаем поле is_subscribed в ответ
             return Response({
                 'id': subscription.id,
                 'following': subscription.following.id,
                 'is_subscribed': True
             }, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             instance = user.subscriptions.filter(following=following).first()
             if instance:
@@ -129,7 +131,8 @@ class UserViewSet(DjoserViewSet):
 
             return Response(
                 {'detail': 'Подписка не найдена.'},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

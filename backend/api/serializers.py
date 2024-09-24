@@ -135,6 +135,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     Сериализатор создания подписок.
     """
 
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Subscription
         fields = ('id', 'following', 'user')
@@ -156,11 +158,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Subscription.objects.create(**validated_data)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['is_subscribed'] = self.get_is_subscribed(instance)
-        return representation
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
