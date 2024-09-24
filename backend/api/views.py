@@ -84,9 +84,8 @@ class UserViewSet(DjoserViewSet):
         """
         Получение списка подписчиков.
         """
-        user = self.request.user
-        subscriptions = User.objects.filter(
-            followers__user=user)
+        user = request.user
+        subscriptions = User.objects.filter(followers__user=user)
         paginated_subscriptions = self.paginate_queryset(subscriptions)
         serializer = ListSubscriptionsSerializer(
             paginated_subscriptions, many=True, context={'request': request}
@@ -104,26 +103,23 @@ class UserViewSet(DjoserViewSet):
         """
         Позволяет подписаться или отписаться от пользователя.
         """
-        following = self.get_object()
+        following = self.get_object()  # Get the user to subscribe to
         user = request.user
-        data = {'following': following.id, 'user': user.id}
-        serializer = SubscriptionSerializer(
-            data=data, context={'request': request})
 
         if request.method == 'POST':
+            data = {'following': following.id}  # Only include following in the data
+            serializer = SubscriptionSerializer(data=data, context={'request': request})
             serializer.is_valid(raise_exception=True)
-            response_data = serializer.create(serializer.validated_data)
-            return Response(response_data, status=status.HTTP_201_CREATED)
+            serializer.create(serializer.validated_data)
+            return Response({'is_subscribed': True}, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            instance = user.subscriptions.filter(following=following).first()
+        elif request.method == 'DELETE':
+            instance = Subscription.objects.filter(user=user, following=following).first()
             if instance:
                 instance.delete()
-                return Response({'is_subscribed': False},
-                                status=status.HTTP_204_NO_CONTENT)
+                return Response({'is_subscribed': False}, status=status.HTTP_204_NO_CONTENT)
 
-            return Response({'detail': 'Подписка не найдена.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Подписка не найдена.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
