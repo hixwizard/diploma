@@ -67,11 +67,7 @@ class Subscription(models.Model):
             models.UniqueConstraint(
                 fields=('user', 'following'),
                 name='unique_followers'
-            ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F('following')),
-                name='self_subscription'
-            ),
+            )
         )
 
     def __str__(self):

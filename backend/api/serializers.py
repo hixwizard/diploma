@@ -136,7 +136,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
-        fields = ('user', 'following',)
+        fields = ('user', 'following')
 
     def validate(self, data):
         user = data['user']
