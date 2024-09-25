@@ -165,24 +165,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Получение рецептов в зависимости от избранного или списка покупок.
         """
         queryset = Recipe.objects.all().order_by('-id')
+        if self.request.user.is_authenticated:        
+            favorite_subquery = FavoriteRecipe.objects.filter(
+                user=self.request.user,
+                recipe=OuterRef('pk')
+            ).values('recipe')
+            shopping_cart_subquery = ShoppingCart.objects.filter(
+                user=self.request.user,
+                recipe=OuterRef('pk')
+            ).values('recipe')
+            queryset = queryset.annotate(
+                is_favorited=Exists(favorite_subquery),
+                is_in_shopping_cart=Exists(shopping_cart_subquery)
+            )
+            if self.request.query_params.get('is_in_shopping_cart'):
+                queryset = queryset.filter(is_in_shopping_cart=True)
+            if self.request.query_params.get('is_favorited'):
+                queryset = queryset.filter(is_favorited=True)
         if not self.request.user.is_authenticated:
             return queryset
-        favorite_subquery = FavoriteRecipe.objects.filter(
-            user=self.request.user,
-            recipe=OuterRef('pk')
-        ).values('recipe')
-        shopping_cart_subquery = ShoppingCart.objects.filter(
-            user=self.request.user,
-            recipe=OuterRef('pk')
-        ).values('recipe')
-        queryset = queryset.annotate(
-            is_favorited=Exists(favorite_subquery),
-            is_in_shopping_cart=Exists(shopping_cart_subquery)
-        )
-        if self.request.query_params.get('is_in_shopping_cart'):
-            queryset = queryset.filter(is_in_shopping_cart=True)
-        if self.request.query_params.get('is_favorited'):
-            queryset = queryset.filter(is_favorited=True)
         return queryset
 
     def get_serializer_class(self):
