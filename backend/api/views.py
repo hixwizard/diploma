@@ -7,7 +7,7 @@ from django.db.models import Prefetch
 from django.http import FileResponse
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
-from django.db.models import OuterRef, Sum, Exists
+from django.db.models import OuterRef, Sum, Exists, Value, BooleanField
 from djoser.views import UserViewSet as DjoserViewSet
 from djoser.permissions import CurrentUserOrAdminOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
@@ -165,7 +165,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Получение рецептов в зависимости от избранного или списка покупок.
         """
         queryset = Recipe.objects.all().order_by('-id')
-        if self.request.user.is_authenticated:        
+        if self.request.user.is_authenticated:
             favorite_subquery = FavoriteRecipe.objects.filter(
                 user=self.request.user,
                 recipe=OuterRef('pk')
@@ -182,8 +182,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_in_shopping_cart=True)
             if self.request.query_params.get('is_favorited'):
                 queryset = queryset.filter(is_favorited=True)
-        if not self.request.user.is_authenticated:
-            return queryset
+        else:
+            queryset = queryset.annotate(
+                is_favorited=Value(False, output_field=BooleanField()),
+                is_in_shopping_cart=Value(False, output_field=BooleanField())
+            )
         return queryset
 
     def get_serializer_class(self):
