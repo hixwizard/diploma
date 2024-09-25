@@ -216,7 +216,6 @@ class RecipeGETSerializer(serializers.ModelSerializer):
         read_only_fields = ('author', 'tags', 'ingredients')
 
 
-
 class IngredientCreateSerializer(serializers.ModelSerializer):
     """
     Серилизатор для Проверки ингредиента при создании рецепта.
