@@ -166,7 +166,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         queryset = Recipe.objects.all().order_by('-id')
         if self.request.user.is_authenticated:
-            
             favorite_subquery = FavoriteRecipe.objects.filter(
                 user=self.request.user,
                 recipe=OuterRef('pk')
@@ -256,7 +255,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             self, request, serializer_class, model, pk=None
     ):
         """
-        Добавить или удалить элемент в модель.
+        Добавить или удалить рецепт в модель.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
