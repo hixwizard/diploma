@@ -1,35 +1,32 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.contrib.auth.forms import (
-    ReadOnlyPasswordHashField, AdminPasswordChangeForm)
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from users.models import User, Subscription
 
 
-class UserChangeForm(AdminPasswordChangeForm):
-    password = ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = User
-        fields = (
-            'email', 'username', 'first_name',
-            'last_name', 'password',
-            'is_subscribed', 'avatar'
-        )
-
-    def clean_password(self):
-        return self.initial['password']
-
-
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    form = UserChangeForm
+class UserAdmin(BaseUserAdmin):
     list_display = (
-        'id', 'email', 'password', 'username',
-        'first_name', 'last_name', 'avatar_image'
+        'id', 'email', 'username', 'first_name', 'last_name', 'avatar_image'
     )
     list_filter = ('email', 'username',)
     search_fields = ('email', 'username', 'first_name', 'last_name',)
+    readonly_fields = ('password',)
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'avatar')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+    )
+    ordering = ('email',)
 
     @admin.display(ordering='avatar')
     def avatar_image(self, obj):
