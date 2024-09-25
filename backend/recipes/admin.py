@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+
+from core.constans import FIELD_TO_EDIT
 from recipes.formsets import (
     TagRecipeInlineFormSet, IngredientRecipeAmountInlineFormSet,
     ShoppingCartForm, FavoriteRecipeForm)
@@ -38,6 +40,7 @@ class IngredientRecipeAmountInline(admin.TabularInline):
     Инлайн-класс для редактирования ингредиентов рецепта.
     """
     model = IngredientRecipeAmountModel
+    extra = FIELD_TO_EDIT
     formset = IngredientRecipeAmountInlineFormSet
 
 
@@ -46,6 +49,7 @@ class TagRecipeInline(admin.TabularInline):
     Инлайн-класс для редактирования тегов рецепта.
     """
     model = TagRecipe
+    extra = FIELD_TO_EDIT
     formset = TagRecipeInlineFormSet
 
 

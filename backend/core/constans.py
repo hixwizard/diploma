@@ -13,3 +13,4 @@ MIN_AMOUNT: int = 1
 EMPTY_VALUES = (None, "", [], (), {})
 MIN_LIMIT: int = 0
 MIN_COUNT: int = 20
+FIELD_TO_EDIT: int = 1
