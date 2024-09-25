@@ -3,7 +3,6 @@ from uuid import uuid4
 from io import BytesIO
 
 from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch
 from django.http import FileResponse
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
@@ -18,13 +17,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.filters import RecipeFilter, IngredientFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorOrReadOnly
-from users.models import Subscription
 from recipes.models import (Tag, Recipe, Ingredient, ShortLink,
                             ShoppingCart, FavoriteRecipe,
                             IngredientRecipeAmountModel)
 from api.serializers import (UserAvatarUpdateSerializer, TagSerializer,
                              RecipeCreateSerializer, IngredientSerializer,
-                             RecipeGETSerializer, UserSerializer,
+                             RecipeGETSerializer,
                              ShortLinkSerializer, ShoppingCartSerializer,
                              SubscriptionSerializer, FavoriteRecipeSerializer,
                              ListSubscriptionsSerializer,)
@@ -100,7 +98,7 @@ class UserViewSet(DjoserViewSet):
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            subscription = serializer.save()
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
@@ -187,7 +185,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 is_favorited=Value(False, output_field=BooleanField()),
                 is_in_shopping_cart=Value(False, output_field=BooleanField())
             )
-
         return queryset
 
     def get_serializer_class(self):

@@ -356,7 +356,7 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        user = self.context['request'].user
+        self.context['request'].user
         representation['is_favorited'] = isinstance(
             instance, FavoriteRecipe)
         representation['is_in_shopping_cart'] = isinstance(

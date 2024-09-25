@@ -8,6 +8,7 @@ from recipes.models import (
     Ingredient,
     ShoppingCart,
     IngredientRecipeAmountModel,
+    TagRecipe
 )
 
 
@@ -23,6 +24,16 @@ class IngredientAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
+class IngredientRecipeAmountInline(admin.TabularInline):
+    model = IngredientRecipeAmountModel
+    extra = 1
+
+
+class TagRecipeInline(admin.TabularInline):
+    model = TagRecipe
+    extra = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'name', 'author_username', 'image_tag'
@@ -30,6 +41,8 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username', 'author__email')
     list_filter = ('tags',)
     ordering = ('-id',)
+    inlines = [IngredientRecipeAmountInline, TagRecipeInline]
+    filter_horizontal = ('tags',)
 
     def author_username(self, obj):
         return obj.author.username
@@ -65,7 +78,4 @@ admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShortLink, ShortLinkAdmin)
 admin.site.register(FavoriteRecipe, FavoriteRecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(
-    IngredientRecipeAmountModel,
-)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
