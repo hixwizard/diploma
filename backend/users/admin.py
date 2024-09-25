@@ -1,11 +1,29 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 from users.models import User, Subscription
 
 
+class UserChangeForm(forms.ModelForm):
+    password = ReadOnlyPasswordHashField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'username', 'first_name',
+            'last_name', 'password',
+            'is_subscribed', 'avatar'
+        )
+
+    def clean_password(self):
+        return self.initial['password']
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    form = UserChangeForm
     list_display = (
         'id', 'email', 'password', 'username',
         'first_name', 'last_name', 'avatar_image'

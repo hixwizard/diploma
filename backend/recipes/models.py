@@ -131,7 +131,7 @@ class TagRecipe(models.Model):
     )
 
     def __str__(self):
-        return f'{self.tag} {self.recipe}'
+        return f'Теги рецепта {self.recipe}'
 
 
 class IngredientRecipeAmountModel(models.Model):

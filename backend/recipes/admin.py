@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+from recipes.formsets import (
+    TagRecipeInlineFormSet, IngredientRecipeAmountInlineFormSet,
+    ShoppingCartForm, FavoriteRecipeForm)
 from recipes.models import (
     Tag,
     Recipe,
@@ -13,28 +16,44 @@ from recipes.models import (
 
 
 class TagAdmin(admin.ModelAdmin):
+    """
+    Панель редактирования тегов.
+    """
     list_display = ('id', 'name', 'slug')
     search_fields = ('name', 'slug')
     ordering = ('name',)
 
 
 class IngredientAdmin(admin.ModelAdmin):
+    """
+    Панель редактирования ингредиентов.
+    """
     list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
     ordering = ('name',)
 
 
 class IngredientRecipeAmountInline(admin.TabularInline):
+    """
+    Инлайн-класс для редактирования ингредиентов рецепта.
+    """
     model = IngredientRecipeAmountModel
-    extra = 1
+    formset = IngredientRecipeAmountInlineFormSet
 
 
 class TagRecipeInline(admin.TabularInline):
+    """
+    Инлайн-класс для редактирования тегов рецепта.
+    """
     model = TagRecipe
-    extra = 1
+    formset = TagRecipeInlineFormSet
 
 
 class RecipeAdmin(admin.ModelAdmin):
+    """
+    Панель редактирования рецептов.
+    Включаен инлайн-классы для гибкой настройки.
+    """
     list_display = (
         'id', 'name', 'author_username', 'image_tag'
     )
@@ -61,16 +80,33 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class ShortLinkAdmin(admin.ModelAdmin):
+    """
+    Панель коротких ссылок.
+    """
     list_display = ('recipe', 'link')
     search_fields = ('recipe__name', 'link',)
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
+    """
+    Панель корзины.
+    """
     list_display = ('id', 'user', 'recipe')
+
+    def get_form(self, request, obj=None, **kwargs):
+        super().get_form(request, obj, **kwargs)
+        return ShoppingCartForm
 
 
 class FavoriteRecipeAdmin(admin.ModelAdmin):
+    """
+    Панель избранного.
+    """
     list_display = ('id', 'user', 'recipe')
+
+    def get_form(self, request, obj=None, **kwargs):
+        super().get_form(request, obj, **kwargs)
+        return FavoriteRecipeForm
 
 
 admin.site.register(Tag, TagAdmin)
