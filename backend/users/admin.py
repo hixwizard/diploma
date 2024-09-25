@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import AdminPasswordChangeForm
 
 from users.models import User, Subscription
 
@@ -12,14 +13,13 @@ class UserAdmin(BaseUserAdmin):
     )
     list_filter = ('email', 'username',)
     search_fields = ('email', 'username', 'first_name', 'last_name',)
-    readonly_fields = ('password',)
-
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'avatar')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
+    change_password_form = AdminPasswordChangeForm
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
