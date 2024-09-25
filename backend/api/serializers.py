@@ -32,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if user.is_anonymous:
-            return False  # Анонимный пользователь не может быть подписан
+            return False
         return Subscription.objects.filter(user=user, following=obj).exists()
 
     def get_avatar(self, obj):

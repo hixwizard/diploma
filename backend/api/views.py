@@ -182,7 +182,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_in_shopping_cart=True)
             if self.request.query_params.get('is_favorited'):
                 queryset = queryset.filter(is_favorited=True)
-        else:
+        if self.request.user.is_anonymous:
             queryset = queryset.annotate(
                 is_favorited=Value(False, output_field=BooleanField()),
                 is_in_shopping_cart=Value(False, output_field=BooleanField())
