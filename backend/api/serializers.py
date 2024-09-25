@@ -20,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
     """
     Сериализатор пользователей.
     """
-    is_subscribed = serializers.BooleanField(default=False)
+    is_subscribed = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
 
     class Meta:
@@ -204,7 +204,7 @@ class RecipeGETSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     is_favorited = serializers.BooleanField(default=False)
     is_in_shopping_cart = serializers.BooleanField(default=False)
-    is_favorited = serializers.BooleanField(default=False)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField(required=True)
 
     class Meta:
