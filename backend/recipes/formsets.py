@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 
+from core.constans import MIN_AMOUNT
 from recipes.models import (IngredientRecipeAmountModel, TagRecipe,
                             ShoppingCart, FavoriteRecipe)
 
@@ -11,50 +12,41 @@ class IngredientRecipeAmountInlineFormSet(BaseInlineFormSet):
     Валидация ингредиентов.
     """
     def clean(self):
-        """
-        Проверка наличия хотя бы одного ингредиента
-        и уникальности ингредиентов в рецепте.
-        """
         super().clean()
 
         if any(self.errors):
             return
 
         ingredients = set()
-        self.cleaned_ingredients = []
         has_ingredient = False
 
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get(
-                'DELETE', False
-            ):
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
                 ingredient = form.cleaned_data.get('ingredient')
+                amount = form.cleaned_data.get('amount')
+
                 has_ingredient = True
                 if ingredient in ingredients:
                     raise ValidationError(
-                        'Ингредиенты в рецепте должны быть уникальными.'
-                    )
+                        'Ингредиенты в рецепте должны быть уникальными.')
+                if amount < MIN_AMOUNT:
+                    raise ValidationError(
+                        f'Количество должно быть больше {MIN_AMOUNT}.')
                 ingredients.add(ingredient)
-                self.cleaned_ingredients.append(form.cleaned_data)
         if not has_ingredient:
             raise ValidationError(
-                'Рецепт должен содержать хотя бы один ингредиент.'
-            )
+                'Рецепт должен содержать хотя бы один ингредиент.')
 
     def save(self, commit=True):
-        """
-        Сохраняем ингредиенты с помощью bulk_create.
-        """
         instances = []
-        for cleaned_data in self.cleaned_ingredients:
-            ingredient = cleaned_data['ingredient']
-            amount = cleaned_data['amount']
-            recipe = self.instance
-            instances.append(IngredientRecipeAmountModel(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=amount
-            ))
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                ingredient = form.cleaned_data['ingredient']
+                amount = form.cleaned_data['amount']
+                recipe = self.instance
+                instances.append(IngredientRecipeAmountModel(
+                    recipe=recipe, ingredient=ingredient, amount=amount)
+                )
         if instances:
             IngredientRecipeAmountModel.objects.bulk_create(instances)
         return instances
@@ -65,16 +57,12 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
     Валидация тегов.
     """
     def clean(self):
-        """
-        Проверка наличия хотя бы одного тега и уникальности тегов в рецепте.
-        """
         super().clean()
 
         if any(self.errors):
             return
 
         tags = set()
-        self.cleaned_tags = []
         has_tag = False
 
         for form in self.forms:
@@ -85,27 +73,21 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
                 has_tag = True
                 if tag in tags:
                     raise ValidationError(
-                        'Теги в рецепте не должны повторяться.'
-                    )
+                        'Теги в рецепте не должны повторяться.')
                 tags.add(tag)
-                self.cleaned_tags.append(form.cleaned_data)
+
         if not has_tag:
-            raise ValidationError(
-                'Рецепт должен содержать хотя бы один тег.'
-            )
+            raise ValidationError('Рецепт должен содержать хотя бы один тег.')
 
     def save(self, commit=True):
-        """
-        Сохраняем теги с помощью bulk_create.
-        """
         instances = []
-        for cleaned_data in self.cleaned_tags:
-            tag = cleaned_data['tag']
-            recipe = self.instance
-            instances.append(TagRecipe(
-                recipe=recipe,
-                tag=tag
-            ))
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get(
+                'DELETE', False
+            ):
+                tag = form.cleaned_data['tag']
+                recipe = self.instance
+                instances.append(TagRecipe(recipe=recipe, tag=tag))
         if instances:
             TagRecipe.objects.bulk_create(instances)
         return instances

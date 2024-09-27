@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import AdminPasswordChangeForm
 
 from users.models import User, Subscription
+from .formsets import SubscriptionInline
 
 
 @admin.register(User)
@@ -40,6 +41,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('id', 'user_username', 'following_username')
     list_filter = ('user',)
     search_fields = ('user__username', 'following__username')
+    inlines = [SubscriptionInline]
 
     @admin.display(ordering='user__username')
     def user_username(self, obj):

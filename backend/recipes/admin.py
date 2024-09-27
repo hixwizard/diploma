@@ -40,8 +40,8 @@ class IngredientRecipeAmountInline(admin.TabularInline):
     Инлайн-класс для редактирования ингредиентов рецепта.
     """
     model = IngredientRecipeAmountModel
-    extra = FIELD_TO_EDIT
     formset = IngredientRecipeAmountInlineFormSet
+    extra = FIELD_TO_EDIT
 
 
 class TagRecipeInline(admin.TabularInline):
@@ -49,18 +49,16 @@ class TagRecipeInline(admin.TabularInline):
     Инлайн-класс для редактирования тегов рецепта.
     """
     model = TagRecipe
-    extra = FIELD_TO_EDIT
     formset = TagRecipeInlineFormSet
+    extra = FIELD_TO_EDIT
 
 
 class RecipeAdmin(admin.ModelAdmin):
     """
     Панель редактирования рецептов.
-    Включаен инлайн-классы для гибкой настройки.
+    Включает инлайн-классы для гибкой настройки.
     """
-    list_display = (
-        'id', 'name', 'author_username', 'image_tag'
-    )
+    list_display = ('id', 'name', 'author_username', 'image_tag')
     search_fields = ('name', 'author__username', 'author__email')
     list_filter = ('tags',)
     ordering = ('-id',)
@@ -76,7 +74,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def image_tag(self, obj):
         if obj.image:
             return mark_safe('<img src="{}" width="150"'
-                             'height="100" />'.format(obj.image.url))
+                             ' height="100" />'.format(obj.image.url))
         return None
 
     class Meta:
