@@ -120,13 +120,13 @@ class ListSubscriptionsSerializer(UserSerializer):
         return RecipeSerializer(recipes, many=True).data
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionSerializer(UserSerializer):
     """
     Сериализатор создания подписок.
     """
     class Meta:
         model = Subscription
-        fields = ('user', 'following', 'is_subscribed')
+        fields = ('user', 'following')
 
     def validate(self, data):
         user = data['user']
@@ -136,10 +136,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         if following.subscriptions.filter(user=user).exists():
             raise serializers.ValidationError('Подписка уже есть.')
         return data
-
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return obj.followers.filter(user=user).exists()
 
     def to_representation(self, instance):
         return ListSubscriptionsSerializer(
