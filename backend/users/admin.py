@@ -4,7 +4,6 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import AdminPasswordChangeForm
 
 from users.models import User, Subscription
-from users.formsets import SubscriptionInline
 
 
 @admin.register(User)
