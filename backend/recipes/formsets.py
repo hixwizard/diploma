@@ -48,7 +48,7 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
             if form.cleaned_data and not form.cleaned_data.get(
                 'DELETE', False
             ):
-                ingredient = form.cleaned_data.get('ingredient')
+                ingredient = form.cleaned_data.get('id')
                 amount = form.cleaned_data.get('amount')
                 has_ingredient = True
                 if ingredient in ingredients:
