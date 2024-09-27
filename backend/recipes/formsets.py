@@ -34,19 +34,6 @@ class IngredientRecipeInlineFormSet(BaseInlineFormSet):
             raise ValidationError(
                 'Рецепт должен содержать хотя бы один ингредиент.')
 
-    def save(self, commit=True):
-        instances = []
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                ingredient = form.cleaned_data['ingredient']
-                amount = form.cleaned_data['amount']
-                recipe = self.instance
-                instances.append(IngredientRecipeAmountModel(
-                    recipe=recipe, ingredient=ingredient, amount=amount))
-        if instances:
-            IngredientRecipeAmountModel.objects.bulk_create(instances)
-        return instances
-
 
 class TagRecipeInlineFormSet(BaseInlineFormSet):
     """
@@ -70,19 +57,6 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
                 tags.add(tag)
         if not has_tag:
             raise ValidationError('Рецепт должен содержать хотя бы один тег.')
-
-    def save(self, commit=True):
-        instances = []
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get(
-                'DELETE', False
-            ):
-                tag = form.cleaned_data['tag']
-                recipe = self.instance
-                instances.append(TagRecipe(recipe=recipe, tag=tag))
-        if instances:
-            TagRecipe.objects.bulk_create(instances)
-        return instances
 
 
 class ShoppingCartForm(forms.ModelForm):
