@@ -31,9 +31,10 @@ class UserSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return Subscription.objects.filter(user=user, following=obj).exists()
+        return (
+            not user.is_anonymous
+            and obj.followers.filter(user=user).exists()
+        )
 
     def get_avatar(self, obj):
         """
@@ -49,7 +50,6 @@ class UserCreateSerializer(serializers.ModelSerializer, ExtraKwargsMixin):
     """
     Сериализатор регистрации пользователей.
     """
-
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
@@ -89,7 +89,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     """
     Сериализатор для ответа при получении рецепта.
     """
-
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -103,7 +102,6 @@ class ListSubscriptionsSerializer(UserSerializer):
     recipes_count = serializers.IntegerField(
         source='recipe_set.count', read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -121,19 +119,11 @@ class ListSubscriptionsSerializer(UserSerializer):
             recipes = recipes[:int(limit)]
         return RecipeSerializer(recipes, many=True).data
 
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return Subscription.objects.filter(
-            user=user, following=obj
-        ).exists()
-
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """
     Сериализатор создания подписок.
     """
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = Subscription
         fields = ('user', 'following', 'is_subscribed')
@@ -143,16 +133,13 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         following = data['following']
         if user.id == following.id:
             raise serializers.ValidationError('Нельзя подписаться на себя.')
-        if Subscription.objects.filter(
-            user=user, following=following
-        ).exists():
+        if following.subscriptions.filter(user=user).exists():
             raise serializers.ValidationError('Подписка уже есть.')
         return data
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return Subscription.objects.filter(
-            user=user, following=obj).exists()
+        return obj.followers.filter(user=user).exists()
 
     def to_representation(self, instance):
         return ListSubscriptionsSerializer(
@@ -333,34 +320,50 @@ class RecipeCreateSerializer(serializers.ModelSerializer, ValidateBase64Mixin):
         return RecipeGETSerializer(instance, context=self.context).data
 
 
+class RecipeResponseSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для ответа при добавлении рецепта
+    в список покупок или избранное.
+    """
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class BaseUserRecipeSerializer(serializers.ModelSerializer):
     """
     Базовый сериализатор для объектов пользователь/рецепт.
     """
-
     def validate(self, attrs):
         user = self.context['request'].user
         recipe = attrs.get('recipe')
         if self.context['request'].method == 'POST':
             if self.Meta.model.objects.filter(
-                    user=user, recipe=recipe).exists():
-                raise ValidationError('Рецепт уже добавлен в избранное.')
+                user=user, recipe=recipe
+            ).exists():
+                raise ValidationError('Рецепт уже добавлен в этот список.')
         if self.context['request'].method == 'DELETE':
             if not self.Meta.model.objects.filter(
-                    user=user, recipe=recipe).exists():
-                raise ValidationError('Рецепт уже удалён из избранного.')
+                user=user, recipe=recipe
+            ).exists():
+                raise ValidationError('Рецепт не найден в этом списке.')
+
         return attrs
 
     def create(self, validated_data):
         return self.Meta.model.objects.create(**validated_data)
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        self.context['request'].user
-        representation['is_favorited'] = isinstance(
-            instance, FavoriteRecipe)
-        representation['is_in_shopping_cart'] = isinstance(
-            instance, ShoppingCart)
+        """
+        Метод для добавления дополнительной информации
+        из сериализатора RecipeResponseSerializer.
+        """
+        recipe_representation = RecipeResponseSerializer(instance.recipe).data
+        representation = {
+            **recipe_representation,
+            'is_favorited': isinstance(instance, FavoriteRecipe),
+            'is_in_shopping_cart': isinstance(instance, ShoppingCart)
+        }
         return representation
 
 
@@ -368,10 +371,9 @@ class FavoriteRecipeSerializer(BaseUserRecipeSerializer):
     """
     Сериализатор для работы со списком избранного.
     """
-
     class Meta:
         model = FavoriteRecipe
-        fields = ['id', 'recipe', 'user']
+        fields = ('id', 'recipe', 'user')
 
 
 class ShoppingCartSerializer(BaseUserRecipeSerializer):
@@ -380,7 +382,7 @@ class ShoppingCartSerializer(BaseUserRecipeSerializer):
     """
     class Meta:
         model = ShoppingCart
-        fields = ['id', 'recipe', 'user']
+        fields = ('id', 'recipe', 'user')
 
 
 class ShortLinkSerializer(serializers.ModelSerializer):

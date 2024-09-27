@@ -14,6 +14,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
 from api.filters import RecipeFilter, IngredientFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorOrReadOnly
@@ -102,9 +103,9 @@ class UserViewSet(DjoserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            instance = user.subscriptions.filter(following=following).first()
-            if instance:
-                instance.delete()
+            queryset = user.subscriptions.filter(following=following)
+            if queryset.exists():
+                queryset.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {'detail': 'Подписка не найдена.'},
@@ -263,37 +264,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
         data = {'user': user.id, 'recipe': recipe.id}
-        serializer = serializer_class(data=data, context={'request': request})
+
         if request.method == 'POST':
-            if model.objects.filter(user=user, recipe=recipe).exists():
-                return Response(
-                    {"detail": "Рецепт уже добавлен."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            serializer = serializer_class(
+                data=data, context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response({
-                "id": serializer.data['id'],
-                "recipe": serializer.data['recipe'],
-                "is_favorited": isinstance(
-                    serializer, FavoriteRecipeSerializer),
-                "is_in_shopping_cart": isinstance(
-                    serializer, ShoppingCartSerializer)
-            }, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             instance = model.objects.filter(user=user, recipe=recipe).first()
             if instance:
                 instance.delete()
-                return Response({
-                    "is_favorited": isinstance(
-                        serializer, FavoriteRecipeSerializer),
-                    "is_in_shopping_cart": isinstance(
-                        serializer, ShoppingCartSerializer)
-                }, status=status.HTTP_204_NO_CONTENT)
-            return Response(
-                {"detail": "Рецепт уже удалён."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True,
             methods=['post', 'delete'],
