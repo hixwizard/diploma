@@ -46,7 +46,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('id', 'user_username', 'following_username')
     list_filter = ('user',)
     search_fields = ('user__username', 'following__username')
-    inlines = [SubscriptionInline]
 
     @admin.display(ordering='user__username')
     def user_username(self, obj):
