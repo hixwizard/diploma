@@ -45,13 +45,11 @@ class IngredientRecipeAmountInline(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.instance = obj
         if obj is not None:
             ingredient_ids = IngredientRecipeAmountModel.objects.filter(
                 recipe=obj).values_list('ingredient_id', flat=True)
             for form in formset.forms:
-                form.fields['id'].queryset = Ingredient.objects.exclude(
-                    id__in=ingredient_ids)
+                form.fields['id'].queryset = Ingredient.objects.all()
         return formset
 
 
