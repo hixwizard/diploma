@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from core.constans import MAX_EMAIL, MAX_NAME
 
@@ -64,6 +65,15 @@ class Subscription(models.Model):
         verbose_name = 'подписчик'
         verbose_name_plural = 'Подписчики'
         unique_together = ('user', 'following')
+
+    def clean(self):
+        if self.user == self.following:
+            raise ValidationError("Нельзя подписаться на себя.")
+        if Subscription.objects.filter(
+            user=self.user,
+            following=self.following
+        ).exists():
+            raise ValidationError("Подписка уже существует.")
 
     def __str__(self):
         return f'{self.user} подписался на {self.following}'

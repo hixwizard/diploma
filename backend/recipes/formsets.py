@@ -3,9 +3,7 @@ from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 
 from core.constans import MIN_AMOUNT
-from recipes.models import (
-    TagRecipe, ShoppingCart, FavoriteRecipe, IngredientRecipeAmountModel
-)
+from recipes.models import ShoppingCart, FavoriteRecipe
 
 
 class IngredientRecipeInlineFormSet(BaseInlineFormSet):
@@ -19,7 +17,9 @@ class IngredientRecipeInlineFormSet(BaseInlineFormSet):
         ingredients = set()
         has_ingredient = False
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+            if form.cleaned_data and not form.cleaned_data.get(
+                'DELETE', False
+            ):
                 ingredient = form.cleaned_data.get('ingredient')
                 amount = form.cleaned_data.get('amount')
                 if ingredient in ingredients:
@@ -59,7 +59,30 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
             raise ValidationError('Рецепт должен содержать хотя бы один тег.')
 
 
-class ShoppingCartForm(forms.ModelForm):
+class BaseUserRecipeForm(forms.ModelForm):
+    """
+    Базовая форма для добавления рецептов в связи с пользователем
+    (например, в корзину покупок или в избранное).
+    """
+    class Meta:
+        abstract = True
+
+    def __init__(self, *args, **kwargs):
+        self.model_class = kwargs.pop('model_class')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        user = self.cleaned_data.get('user')
+        recipe = self.cleaned_data.get('recipe')
+        if self.model_class.objects.filter(user=user, recipe=recipe).exists():
+            raise ValidationError(
+                f'Этот рецепт уже добавлен в '
+                f'{self.model_class._meta.verbose_name}.'
+            )
+
+
+class ShoppingCartForm(BaseUserRecipeForm):
     """
     Форма для добавления рецептов в корзину покупок.
     """
@@ -67,16 +90,12 @@ class ShoppingCartForm(forms.ModelForm):
         model = ShoppingCart
         fields = ['user', 'recipe']
 
-    def clean(self):
-        super().clean()
-        user = self.cleaned_data.get('user')
-        recipe = self.cleaned_data.get('recipe')
-        if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-            raise ValidationError(
-                'Этот рецепт уже добавлен в корзину покупок.')
+    def __init__(self, *args, **kwargs):
+        kwargs['model_class'] = ShoppingCart
+        super().__init__(*args, **kwargs)
 
 
-class FavoriteRecipeForm(forms.ModelForm):
+class FavoriteRecipeForm(BaseUserRecipeForm):
     """
     Форма для добавления рецептов в избранное.
     """
@@ -84,10 +103,6 @@ class FavoriteRecipeForm(forms.ModelForm):
         model = FavoriteRecipe
         fields = ['user', 'recipe']
 
-    def clean(self):
-        super().clean()
-        user = self.cleaned_data.get('user')
-        recipe = self.cleaned_data.get('recipe')
-        if FavoriteRecipe.objects.filter(user=user, recipe=recipe).exists():
-            raise ValidationError(
-                'Этот рецепт уже добавлен в избранное.')
+    def __init__(self, *args, **kwargs):
+        kwargs['model_class'] = FavoriteRecipe
+        super().__init__(*args, **kwargs)
