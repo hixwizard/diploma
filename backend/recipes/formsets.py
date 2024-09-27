@@ -4,7 +4,21 @@ from django.forms.models import BaseInlineFormSet, BaseModelFormSet
 
 from core.constans import MIN_AMOUNT
 from recipes.models import (IngredientRecipeAmountModel, TagRecipe,
-                            ShoppingCart, FavoriteRecipe)
+                            ShoppingCart, FavoriteRecipe, Ingredient)
+
+
+class IngredientRecipeAmountModelForm(forms.ModelForm):
+    class Meta:
+        model = IngredientRecipeAmountModel
+        fields = ('id', 'amount')
+
+    def __init__(self, *args, **kwargs):
+        recipe = kwargs.pop('recipe', None)
+        super().__init__(*args, **kwargs)
+        if recipe is not None:
+            self.fields['id'].queryset = Ingredient.objects.exclude(
+                id__in=IngredientRecipeAmountModel.objects.filter(
+                    recipe=recipe).values_list('ingredient', flat=True))
 
 
 class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
@@ -15,7 +29,6 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
         instance = kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
         self.instance = instance
-        self.new_objects = []
         if self.instance is not None:
             self.queryset = IngredientRecipeAmountModel.objects.filter(
                 recipe=self.instance
@@ -23,7 +36,6 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
 
     def save_new(self, form, commit=True):
         instance = super().save_new(form, commit)
-        self.new_objects.append(instance)
         return instance
 
     def clean(self):
@@ -56,7 +68,7 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
             if form.cleaned_data and not form.cleaned_data.get(
                 'DELETE', False
             ):
-                ingredient = form.cleaned_data['ingredient']
+                ingredient = form.cleaned_data['id']
                 amount = form.cleaned_data['amount']
                 recipe = self.instance
                 instances.append(IngredientRecipeAmountModel(
