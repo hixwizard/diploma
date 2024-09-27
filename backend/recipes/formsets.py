@@ -16,6 +16,10 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
         super().__init__(*args, **kwargs)
         self.instance = instance
         self.new_objects = []
+        if self.instance is not None:
+            self.queryset = IngredientRecipeAmountModel.objects.filter(
+                recipe=self.instance
+            )
 
     def save_new(self, form, commit=True):
         instance = super().save_new(form, commit)

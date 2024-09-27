@@ -43,6 +43,11 @@ class IngredientRecipeAmountInline(admin.TabularInline):
     formset = IngredientRecipeAmountModelFormFormSet
     extra = FIELD_TO_EDIT
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.instance = obj
+        return formset
+
 
 class TagRecipeInline(admin.TabularInline):
     """
