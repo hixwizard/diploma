@@ -1,27 +1,35 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms.models import BaseInlineFormSet
+from django.forms.models import BaseInlineFormSet, BaseModelFormSet
 
 from core.constans import MIN_AMOUNT
 from recipes.models import (IngredientRecipeAmountModel, TagRecipe,
                             ShoppingCart, FavoriteRecipe)
 
 
-class IngredientRecipeAmountInlineFormSet(BaseInlineFormSet):
+class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
     """
     Валидация ингредиентов.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.new_objects = []
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit)
+        self.new_objects.append(instance)
+        return instance
+
     def clean(self):
         super().clean()
-
         if any(self.errors):
             return
-
         ingredients = set()
         has_ingredient = False
-
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+            if form.cleaned_data and not form.cleaned_data.get(
+                'DELETE', False
+            ):
                 ingredient = form.cleaned_data.get('ingredient')
                 amount = form.cleaned_data.get('amount')
 
@@ -40,7 +48,9 @@ class IngredientRecipeAmountInlineFormSet(BaseInlineFormSet):
     def save(self, commit=True):
         instances = []
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+            if form.cleaned_data and not form.cleaned_data.get(
+                'DELETE', False
+            ):
                 ingredient = form.cleaned_data['ingredient']
                 amount = form.cleaned_data['amount']
                 recipe = self.instance
@@ -58,13 +68,10 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
     """
     def clean(self):
         super().clean()
-
         if any(self.errors):
             return
-
         tags = set()
         has_tag = False
-
         for form in self.forms:
             if form.cleaned_data and not form.cleaned_data.get(
                 'DELETE', False
@@ -75,7 +82,6 @@ class TagRecipeInlineFormSet(BaseInlineFormSet):
                     raise ValidationError(
                         'Теги в рецепте не должны повторяться.')
                 tags.add(tag)
-
         if not has_tag:
             raise ValidationError('Рецепт должен содержать хотя бы один тег.')
 
@@ -97,7 +103,6 @@ class ShoppingCartForm(forms.ModelForm):
     """
     Форма для добавления рецептов в корзину покупок.
     """
-
     class Meta:
         model = ShoppingCart
         fields = ['user', 'recipe']
@@ -115,7 +120,6 @@ class FavoriteRecipeForm(forms.ModelForm):
     """
     Форма для добавления рецептов в избранное.
     """
-
     class Meta:
         model = FavoriteRecipe
         fields = ['user', 'recipe']

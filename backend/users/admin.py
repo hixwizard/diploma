@@ -4,11 +4,14 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import AdminPasswordChangeForm
 
 from users.models import User, Subscription
-from .formsets import SubscriptionInline
+from users.formsets import SubscriptionInline
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    """
+    Административная панель пользователя.
+    """
     list_display = (
         'id', 'email', 'username', 'first_name', 'last_name', 'avatar_image'
     )
@@ -38,6 +41,9 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
+    """
+    Административная панель подписок.
+    """
     list_display = ('id', 'user_username', 'following_username')
     list_filter = ('user',)
     search_fields = ('user__username', 'following__username')

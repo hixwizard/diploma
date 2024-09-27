@@ -6,6 +6,9 @@ from core.constans import FIELD_TO_EDIT
 
 
 class SubscriptionInline(admin.TabularInline):
+    """
+    Валидация подписчиков.
+    """
     model = Subscription
     extra = FIELD_TO_EDIT
 
