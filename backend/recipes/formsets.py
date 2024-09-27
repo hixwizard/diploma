@@ -12,7 +12,9 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
     Валидация ингредиентов.
     """
     def __init__(self, *args, **kwargs):
+        instance = kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
+        self.instance = instance
         self.new_objects = []
 
     def save_new(self, form, commit=True):
@@ -32,7 +34,6 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
             ):
                 ingredient = form.cleaned_data.get('ingredient')
                 amount = form.cleaned_data.get('amount')
-
                 has_ingredient = True
                 if ingredient in ingredients:
                     raise ValidationError(
@@ -55,8 +56,7 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
                 amount = form.cleaned_data['amount']
                 recipe = self.instance
                 instances.append(IngredientRecipeAmountModel(
-                    recipe=recipe, ingredient=ingredient, amount=amount)
-                )
+                    recipe=recipe, ingredient=ingredient, amount=amount))
         if instances:
             IngredientRecipeAmountModel.objects.bulk_create(instances)
         return instances
