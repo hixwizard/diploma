@@ -1,43 +1,17 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms.models import BaseInlineFormSet, BaseModelFormSet
+from django.forms.models import BaseInlineFormSet
 
 from core.constans import MIN_AMOUNT
-from recipes.models import (IngredientRecipeAmountModel, TagRecipe,
-                            ShoppingCart, FavoriteRecipe, Ingredient)
+from recipes.models import (
+    TagRecipe, ShoppingCart, FavoriteRecipe, IngredientRecipeAmountModel
+)
 
 
-class IngredientRecipeAmountModelForm(forms.ModelForm):
-    class Meta:
-        model = IngredientRecipeAmountModel
-        fields = ('id', 'amount')
-
-    def __init__(self, *args, **kwargs):
-        recipe = kwargs.pop('recipe', None)
-        super().__init__(*args, **kwargs)
-        if recipe is not None:
-            self.fields['id'].queryset = Ingredient.objects.exclude(
-                id__in=IngredientRecipeAmountModel.objects.filter(
-                    recipe=recipe).values_list('ingredient', flat=True))
-
-
-class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
+class IngredientRecipeInlineFormSet(BaseInlineFormSet):
     """
     Валидация ингредиентов.
     """
-    def __init__(self, *args, **kwargs):
-        instance = kwargs.pop('instance', None)
-        super().__init__(*args, **kwargs)
-        self.instance = instance
-        if self.instance is not None:
-            self.queryset = IngredientRecipeAmountModel.objects.filter(
-                recipe=self.instance
-            )
-
-    def save_new(self, form, commit=True):
-        instance = super().save_new(form, commit)
-        return instance
-
     def clean(self):
         super().clean()
         if any(self.errors):
@@ -45,18 +19,16 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
         ingredients = set()
         has_ingredient = False
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get(
-                'DELETE', False
-            ):
-                ingredient = form.cleaned_data['id']
-                amount = form.cleaned_data['amount']
-                has_ingredient = True
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                ingredient = form.cleaned_data.get('ingredient')
+                amount = form.cleaned_data.get('amount')
                 if ingredient in ingredients:
                     raise ValidationError(
-                        'Ингредиенты в рецепте должны быть уникальными.')
-                if amount < MIN_AMOUNT:
+                        'Ингредиенты в рецепте не должны повторяться.')
+                if amount is None or amount <= MIN_AMOUNT:
                     raise ValidationError(
-                        f'Количество должно быть больше {MIN_AMOUNT}.')
+                        'Количество должно быть положительным числом.')
+                has_ingredient = True
                 ingredients.add(ingredient)
         if not has_ingredient:
             raise ValidationError(
@@ -65,10 +37,8 @@ class IngredientRecipeAmountModelFormFormSet(BaseModelFormSet):
     def save(self, commit=True):
         instances = []
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get(
-                'DELETE', False
-            ):
-                ingredient = form.cleaned_data['id']
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                ingredient = form.cleaned_data['ingredient']
                 amount = form.cleaned_data['amount']
                 recipe = self.instance
                 instances.append(IngredientRecipeAmountModel(

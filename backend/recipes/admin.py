@@ -3,7 +3,7 @@ from django.utils.safestring import mark_safe
 
 from core.constans import FIELD_TO_EDIT
 from recipes.formsets import (
-    TagRecipeInlineFormSet, IngredientRecipeAmountModelFormFormSet,
+    TagRecipeInlineFormSet, IngredientRecipeInlineFormSet,
     ShoppingCartForm, FavoriteRecipeForm)
 from recipes.models import (
     Tag,
@@ -35,22 +35,13 @@ class IngredientAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-class IngredientRecipeAmountInline(admin.TabularInline):
+class IngredientRecipeInline(admin.TabularInline):
     """
     Инлайн-класс для редактирования ингредиентов рецепта.
     """
     model = IngredientRecipeAmountModel
-    formset = IngredientRecipeAmountModelFormFormSet
+    formset = IngredientRecipeInlineFormSet
     extra = FIELD_TO_EDIT
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        if obj is not None:
-            ingredient_ids = IngredientRecipeAmountModel.objects.filter(
-                recipe=obj).values_list('ingredient_id', flat=True)
-            for form in formset.forms:
-                form.fields['id'].queryset = Ingredient.objects.all()
-        return formset
 
 
 class TagRecipeInline(admin.TabularInline):
@@ -71,7 +62,7 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username', 'author__email')
     list_filter = ('tags',)
     ordering = ('-id',)
-    inlines = [IngredientRecipeAmountInline, TagRecipeInline]
+    inlines = [IngredientRecipeInline, TagRecipeInline]
     filter_horizontal = ('tags',)
 
     def author_username(self, obj):
