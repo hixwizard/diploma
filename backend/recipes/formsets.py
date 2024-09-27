@@ -25,7 +25,7 @@ class IngredientRecipeInlineFormSet(BaseInlineFormSet):
                 if ingredient in ingredients:
                     raise ValidationError(
                         'Ингредиенты в рецепте не должны повторяться.')
-                if amount is None or amount <= MIN_AMOUNT:
+                if amount is None or amount < MIN_AMOUNT:
                     raise ValidationError(
                         'Количество должно быть положительным числом.')
                 has_ingredient = True

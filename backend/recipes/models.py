@@ -83,7 +83,6 @@ class Recipe(models.Model):
         through='TagRecipe',
         related_name='recipes'
     )
-
     image = models.ImageField(
         upload_to='media/recipes/',
         blank=True,
