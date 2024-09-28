@@ -2,7 +2,7 @@ import os
 from uuid import uuid4
 from io import BytesIO
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.http import FileResponse
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
@@ -11,7 +11,7 @@ from djoser.views import UserViewSet as DjoserViewSet
 from djoser.permissions import CurrentUserOrAdminOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
@@ -299,3 +299,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         return self._add_or_delete_to_model(
             request, ShoppingCartSerializer, ShoppingCart, pk)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def redirect_short_link(request, short_link):
+    """
+    Редирект на соответствующий рецепт по короткой ссылке.
+    """
+    short_link_obj = get_object_or_404(ShortLink, link=short_link)
+    return redirect(f"/recipes/{short_link_obj.recipe.pk}/")

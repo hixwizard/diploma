@@ -1,7 +1,10 @@
+from uuid import uuid4
+
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from core.constans import MAX_TAG, MAX_INGREDIENT, MAX_UNIT, RECIPE_MAX_FIELDS
+from core.constans import (
+    MAX_TAG, MAX_INGREDIENT, MAX_UNIT, RECIPE_MAX_FIELDS, SHORT_LINK_LENGTH)
 
 User = get_user_model()
 
@@ -175,7 +178,8 @@ class ShortLink(models.Model):
         primary_key=True,
         verbose_name='Рецепт'
     )
-    link = models.URLField(
+    link = models.CharField(
+        max_length=SHORT_LINK_LENGTH,
         unique=True,
         verbose_name='Короткая ссылка'
     )
@@ -183,6 +187,11 @@ class ShortLink(models.Model):
     class Meta:
         verbose_name = 'Короткая ссылка'
         verbose_name_plural = 'Короткие ссылки'
+
+    def save(self, *args, **kwargs):
+        if not self.link:
+            self.link = str(uuid4())[:SHORT_LINK_LENGTH]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Короткая ссылка для {self.recipe.name}"

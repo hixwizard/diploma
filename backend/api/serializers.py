@@ -392,5 +392,8 @@ class ShortLinkSerializer(serializers.ModelSerializer):
         fields = ('link',)
 
     def to_representation(self, instance):
-        short_link = instance.link
-        return {"short-link": short_link}
+        """
+        Возвращает короткую ссылку в кастомном формате.
+        """
+        representation = super().to_representation(instance)
+        return {"short-link": representation['link']}
