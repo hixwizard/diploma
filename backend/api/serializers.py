@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from foodgram_backend.settings import DOMAIN
 from core.constans import MIN_COOKING_TIME, MIN_AMOUNT, MIN_LIMIT
 from api.mixins import ValidateBase64Mixin, ExtraKwargsMixin
 from users.models import Subscription
@@ -394,4 +395,5 @@ class ShortLinkSerializer(serializers.ModelSerializer):
         Возвращает короткую ссылку в кастомном формате.
         """
         representation = super().to_representation(instance)
-        return {"short-link": representation['link']}
+        full_link = f"{DOMAIN}/s/{representation['link']}"
+        return {"short-link": full_link}

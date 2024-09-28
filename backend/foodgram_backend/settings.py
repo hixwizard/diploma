@@ -16,6 +16,8 @@ DEBUG = os.getenv('DEBUG_MODE', default='True',) == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=[]).split(',')
 
+DOMAIN = os.getenv('DOMAIN')
+
 CSRF_TRUSTED_ORIGINS = [
     os.getenv('CSRF_DOMAIN'),
 ]
