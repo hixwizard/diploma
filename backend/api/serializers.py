@@ -385,8 +385,6 @@ class ShortLinkSerializer(serializers.ModelSerializer):
     """
     Сериализатор для короткой ссылки.
     """
-    short_link = serializers.SerializerMethodField()
-
     class Meta:
         model = ShortLink
         fields = ('link',)
