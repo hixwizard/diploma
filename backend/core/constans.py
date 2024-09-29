@@ -4,6 +4,7 @@ MAX_TAG: int = 32
 MAX_INGREDIENT: int = 128
 MAX_UNIT: int = 64
 RECIPE_MAX_FIELDS: int = 256
+DESC_MAX_FIELD: int = 800
 SHORT_LINK_LENGTH: int = 3
 PAGE_SIZE: int = 6
 CSV_HEADERS: list = ['Ингредиент', 'Количество', 'Единица измерения']

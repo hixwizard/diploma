@@ -4,7 +4,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 from core.constans import (
-    MAX_TAG, MAX_INGREDIENT, MAX_UNIT, RECIPE_MAX_FIELDS, SHORT_LINK_LENGTH)
+    MAX_TAG, MAX_INGREDIENT, MAX_UNIT,
+    RECIPE_MAX_FIELDS, SHORT_LINK_LENGTH, DESC_MAX_FIELD)
 
 User = get_user_model()
 
@@ -98,10 +99,10 @@ class Recipe(models.Model):
         max_length=RECIPE_MAX_FIELDS,
         verbose_name='Название'
     )
-    text = models.CharField(
+    text = models.TextField(
         blank=False,
         null=False,
-        max_length=RECIPE_MAX_FIELDS,
+        max_length=DESC_MAX_FIELD,
         verbose_name='Описание'
     )
     cooking_time = models.PositiveSmallIntegerField(
